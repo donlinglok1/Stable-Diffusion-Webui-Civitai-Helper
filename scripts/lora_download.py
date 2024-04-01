@@ -20,16 +20,17 @@ import json
 
 
 # this is the default root path
-root_path = os.getcwd()
+#root_path = os.getcwd()
+root_path = "D:"
 
 # if command line arguement is used to change model folder, 
 # then model folder is in absolute path, not based on this root path anymore.
 # so to make extension work with those absolute model folder paths, model folder also need to be in absolute path
 folders = {
     "ti": os.path.join(root_path, "embeddings"),
-    "hyper": os.path.join(root_path, "models", "hypernetworks"),
-    "ckp": os.path.join(root_path, "models", "Stable-diffusion"),
-    "lora": os.path.join(root_path, "models", "Lora"),
+    "hyper": os.path.join(root_path, "hypernetworks"),
+    "ckp": os.path.join(root_path, "Stable-diffusion"),
+    "lora": os.path.join(root_path, "Lora"),
 }
 
 exts = (".bin", ".pt", ".safetensors", ".ckpt")
@@ -965,7 +966,7 @@ def dl_model_by_input(model_info:dict, model_type:str, subfolder_str:str, versio
     info_file = base + suffix + info_ext
     write_model_info(info_file, version_info)
     try:
-        info_model_file = base + suffix + info_ext + + ".model" 
+        info_model_file = base + suffix + info_ext + ".model" 
         write_model_info(info_model_file, model_info)
     except Exception as e:
         util.printD(e)
@@ -1023,7 +1024,7 @@ def on_ui_tabs():
     # skip_nsfw_preview = shared.opts.data.get("ch_skip_nsfw_preview", False)
     # open_url_with_js = shared.opts.data.get("ch_open_url_with_js", True)
     # proxy = shared.opts.data.get("ch_proxy", "")
-    # civitai_api_key = shared.opts.data.get("ch_civiai_api_key", "")
+    civitai_api_key = "ea650531d6df426956e5acae5a3b0b5a"
 
     # util.printD("Settings:")
     # util.printD("max_size_preview: " + str(max_size_preview))
@@ -1031,14 +1032,14 @@ def on_ui_tabs():
     # util.printD("open_url_with_js: " + str(open_url_with_js))
     # util.printD("proxy: " + str(proxy))
 
-    # # set civitai_api_key
-    # has_api_key = False
-    # if civitai_api_key:
-    #     has_api_key = True
-    #     util.civitai_api_key = civitai_api_key
-    #     util.def_headers["Authorization"] = f"Bearer {civitai_api_key}"
+    # set civitai_api_key
+    has_api_key = False
+    if civitai_api_key:
+        has_api_key = True
+        util.civitai_api_key = civitai_api_key
+        util.def_headers["Authorization"] = f"Bearer {civitai_api_key}"
 
-    # util.printD(f"use civitai api key: {has_api_key}")
+    util.printD(f"use civitai api key: {has_api_key}")
 
     # # set proxy
     # if proxy:
@@ -1086,7 +1087,7 @@ def on_ui_tabs():
     #     return [model_info, model_name, model_type, dl_subfolder_drop.update(choices=subfolders), dl_version_drop.update(choices=version_strs)]
 
     # ====UI====
-    with gr.Blocks(analytics_enabled=False) as civitai_helper:
+    #with gr.Blocks(analytics_enabled=False) as civitai_helper:
 
         # model_types = list(model.folders.keys())
         # no_info_model_names = civitai.get_model_names_by_input("ckp", False)
@@ -1096,22 +1097,22 @@ def on_ui_tabs():
 
 
 
-        with gr.Box(elem_classes="ch_box"):
-            with gr.Column():
-                gr.Markdown("### Scan Models for Civitai")
-                # with gr.Row():
-                #     scan_model_types_ckbg = gr.CheckboxGroup(choices=model_types, label="Model Types", value=model_types)
+        #with gr.Box(elem_classes="ch_box"):
+        #    with gr.Column():
+        #        gr.Markdown("### Scan Models for Civitai")
+                #with gr.Row():
+                #    scan_model_types_ckbg = gr.CheckboxGroup(choices=model_types, label="Model Types", value=model_types)
 
-                # # with gr.Row():
-                # scan_model_civitai_btn = gr.Button(value="Scan", variant="primary", elem_id="ch_scan_model_civitai_btn")
-                # # with gr.Row():
-                # scan_model_log_md = gr.Markdown(value="Scanning takes time, just wait. Check console log for detail", elem_id="ch_scan_model_log_md")
+                # with gr.Row():
+                #scan_model_civitai_btn = gr.Button(value="Scan", variant="primary", elem_id="ch_scan_model_civitai_btn")
+                # with gr.Row():
+                #scan_model_log_md = gr.Markdown(value="Scanning takes time, just wait. Check console log for detail", elem_id="ch_scan_model_log_md")
 
         
-        with gr.Box(elem_classes="ch_box"):
-            with gr.Column():
-                gr.Markdown("### Get Model Info from Civitai by URL")
-                gr.Markdown("Use this when scanning can not find a local model on civitai")
+        #with gr.Box(elem_classes="ch_box"):
+        #    with gr.Column():
+        #        gr.Markdown("### Get Model Info from Civitai by URL")
+        #        gr.Markdown("Use this when scanning can not find a local model on civitai")
                 # with gr.Row():
                 #     model_type_drop = gr.Dropdown(choices=model_types, label="Model Type", value="ckp", multiselect=False)
                 #     empty_info_only_ckb = gr.Checkbox(label="Only Show Models have no Info", value=False, elem_id="ch_empty_info_only_ckb", elem_classes="ch_vpadding")
@@ -1121,14 +1122,14 @@ def on_ui_tabs():
                 # get_civitai_model_info_by_id_btn = gr.Button(value="Get Model Info from Civitai", variant="primary")
                 # get_model_by_id_log_md = gr.Markdown("")
 
-        with gr.Box(elem_classes="ch_box"):
-            with gr.Column():
-                gr.Markdown("### Download Model")
+        #with gr.Box(elem_classes="ch_box"):
+        #    with gr.Column():
+        #        gr.Markdown("### Download Model")
                 # with gr.Row():
                 #     dl_model_url_or_id_txtbox = gr.Textbox(label="Civitai URL", lines=1, value="")
                 #     dl_model_info_btn = gr.Button(value="1. Get Model Info by Civitai Url", variant="primary")
 
-                gr.Markdown(value="2. Pick Subfolder and Model Version")
+        #        gr.Markdown(value="2. Pick Subfolder and Model Version")
                 # with gr.Row():
                 #     dl_model_name_txtbox = gr.Textbox(label="Model Name", interactive=False, lines=1, value="")
                 #     dl_model_type_txtbox = gr.Textbox(label="Model Type", interactive=False, lines=1, value="")
@@ -1139,20 +1140,20 @@ def on_ui_tabs():
                 # dl_civitai_model_by_id_btn = gr.Button(value="3. Download Model", variant="primary")
                 # dl_log_md = gr.Markdown(value="Check Console log for Downloading Status")
 
-        with gr.Box(elem_classes="ch_box"):
-            with gr.Column():
-                gr.Markdown("### Check models' new version")
+        #with gr.Box(elem_classes="ch_box"):
+        #    with gr.Column():
+        #        gr.Markdown("### Check models' new version")
                 #with gr.Row():
                 #    model_types_ckbg = gr.CheckboxGroup(choices=model_types, label="Model Types", value=["lora"])
                 #    check_models_new_version_btn = gr.Button(value="Check New Version from Civitai", variant="primary")
 
                 # check_models_new_version_log_md = gr.HTML("It takes time, just wait. Check console log for detail")
 
-        with gr.Box(elem_classes="ch_box"):
-            with gr.Column():
-                gr.Markdown("### Other")
+        #with gr.Box(elem_classes="ch_box"):
+        #    with gr.Column():
+        #        gr.Markdown("### Other")
                 # save_setting_btn = gr.Button(value="Save Setting")
-                gr.Markdown(value="Settings are moved into Settings Tab->Civitai Helper section")
+        #        gr.Markdown(value="Settings are moved into Settings Tab->Civitai Helper section")
 
 
         # # ====Footer====
@@ -1193,7 +1194,7 @@ def on_ui_tabs():
         # js_remove_card_btn.click(js_action_civitai.remove_model_by_path, inputs=[js_msg_txtbox], outputs=py_msg_txtbox)
 
     # the third parameter is the element id on html, with a "tab_" as prefix
-    return (civitai_helper , "Civitai Helper", "civitai_helper"),
+    #return (civitai_helper , "Civitai Helper", "civitai_helper"),
 
 
 
@@ -1216,28 +1217,173 @@ def get_model_info_by_url2(url):
         model_info, model_name, model_type, subfolders, version_strs = r
 
     if len(version_strs) > 0:
-        #rr = dl_model_by_input(model_info, model_type, 'ani\\newCharacter', version_strs[0], None, None, None)
-        #rr = dl_model_by_input(model_info, model_type, 'ani\\newCostume', version_strs[0], None, None, None)
-        #rr = dl_model_by_input(model_info, model_type, 'ani\\newConcept', version_strs[0], None, None, None)
-        #rr = dl_model_by_input(model_info, model_type, 'ani\\newStyle', version_strs[0], None, None, None)
-        rr = dl_model_by_input(model_info, model_type, 'ani\\newSex', version_strs[0], None, None, None)
-        
-        #rr = dl_model_by_input(model_info, model_type, 'real\\newCharacter', version_strs[0], None, None, None)
-        #rr = dl_model_by_input(model_info, model_type, 'real\\newCostume', version_strs[0], None, None, None)
-        #rr = dl_model_by_input(model_info, model_type, 'real\\newConcept', version_strs[0], None, None, None)
-        #rr = dl_model_by_input(model_info, model_type, 'real\\newStyle', version_strs[0], None, None, None)
-        #rr = dl_model_by_input(model_info, model_type, 'real\\newSex', version_strs[0], None, None, None)
-
-        #rr = dl_model_by_input(model_info, model_type, 'new', version_strs[0], None, None, None)
+        rr = dl_model_by_input(model_info, model_type, '\\', version_strs[0], None, None, None)
 
         return [model_info, model_name, model_type]
 
+on_ui_tabs()
 import time
 if __name__ == '__main__':
     str_list = [
+"https://civitai.com/models/257749?modelVersionId=290640"
+"https://civitai.com/models/257749?modelVersionId=290640"
+"https://civitai.com/models/257749?modelVersionId=290640"
+"https://civitai.com/models/257749?modelVersionId=290640"
+"https://civitai.com/models/100435",
+"https://civitai.com/models/101246",
+"https://civitai.com/models/101886",
+"https://civitai.com/models/101954",
+"https://civitai.com/models/103228",
+"https://civitai.com/models/103255",
+"https://civitai.com/models/104255",
+"https://civitai.com/models/104487",
+"https://civitai.com/models/107948",
+"https://civitai.com/models/10821",
+"https://civitai.com/models/110647",
+"https://civitai.com/models/110921",
+"https://civitai.com/models/11161",
+"https://civitai.com/models/115145",
+"https://civitai.com/models/118659",
+"https://civitai.com/models/119109",
+"https://civitai.com/models/121714",
+"https://civitai.com/models/122433",
+"https://civitai.com/models/126079",
+"https://civitai.com/models/126980",
+"https://civitai.com/models/128524",
+"https://civitai.com/models/136438",
+"https://civitai.com/models/137710",
+"https://civitai.com/models/138320",
+"https://civitai.com/models/140482",
+"https://civitai.com/models/142145",
+"https://civitai.com/models/142350",
+"https://civitai.com/models/142356",
+"https://civitai.com/models/142685",
+"https://civitai.com/models/142887",
+"https://civitai.com/models/143126",
+"https://civitai.com/models/143975",
+"https://civitai.com/models/144641",
+"https://civitai.com/models/145246",
+"https://civitai.com/models/145639",
+"https://civitai.com/models/153094",
+"https://civitai.com/models/156031",
+"https://civitai.com/models/157625",
+"https://civitai.com/models/159515",
+"https://civitai.com/models/168670",
+"https://civitai.com/models/170292",
+"https://civitai.com/models/173812",
+"https://civitai.com/models/175935",
+"https://civitai.com/models/180730",
+"https://civitai.com/models/180969",
+"https://civitai.com/models/18883",
+"https://civitai.com/models/196506",
+"https://civitai.com/models/222972",
+"https://civitai.com/models/223060",
+"https://civitai.com/models/22648",
+"https://civitai.com/models/229070",
+"https://civitai.com/models/236948",
+"https://civitai.com/models/238283",
+"https://civitai.com/models/242289",
+"https://civitai.com/models/24432",
+"https://civitai.com/models/244864",
+"https://civitai.com/models/246140",
+"https://civitai.com/models/250430",
+"https://civitai.com/models/250596",
+"https://civitai.com/models/259663",
+"https://civitai.com/models/263308",
+"https://civitai.com/models/266854",
+"https://civitai.com/models/269827",
+"https://civitai.com/models/270410",
+"https://civitai.com/models/270767",
+"https://civitai.com/models/271850",
+"https://civitai.com/models/273357",
+"https://civitai.com/models/275635",
+"https://civitai.com/models/276493",
+"https://civitai.com/models/284753",
+"https://civitai.com/models/285908",
+"https://civitai.com/models/286328",
+"https://civitai.com/models/286962",
+"https://civitai.com/models/287153",
+"https://civitai.com/models/287155",
+"https://civitai.com/models/289095",
+"https://civitai.com/models/291188",
+"https://civitai.com/models/292133",
+"https://civitai.com/models/298917",
+"https://civitai.com/models/299607",
+"https://civitai.com/models/30116",
+"https://civitai.com/models/306677",
+"https://civitai.com/models/306952",
+"https://civitai.com/models/307315",
+"https://civitai.com/models/308094",
+"https://civitai.com/models/311310",
+"https://civitai.com/models/311711",
+"https://civitai.com/models/312530",
+"https://civitai.com/models/314252",
+"https://civitai.com/models/316191",
+"https://civitai.com/models/319904",
+"https://civitai.com/models/320049",
+"https://civitai.com/models/320879",
+"https://civitai.com/models/324581",
+"https://civitai.com/models/327444",
+"https://civitai.com/models/327670",
+"https://civitai.com/models/329650",
+"https://civitai.com/models/331815",
+"https://civitai.com/models/332875",
+"https://civitai.com/models/333035",
+"https://civitai.com/models/333166",
+"https://civitai.com/models/334066",
+"https://civitai.com/models/334506",
+"https://civitai.com/models/337095",
+"https://civitai.com/models/337736",
+"https://civitai.com/models/338619",
+"https://civitai.com/models/342300",
+"https://civitai.com/models/342386",
+"https://civitai.com/models/342519",
+"https://civitai.com/models/343821",
+"https://civitai.com/models/344892",
+"https://civitai.com/models/345718",
+"https://civitai.com/models/345767",
+"https://civitai.com/models/351416",
+"https://civitai.com/models/352581",
+"https://civitai.com/models/353400",
+"https://civitai.com/models/362745",
+"https://civitai.com/models/365010",
+"https://civitai.com/models/369505",
+"https://civitai.com/models/41915",
+"https://civitai.com/models/45382",
+"https://civitai.com/models/46388",
+"https://civitai.com/models/57760",
+"https://civitai.com/models/62039",
+"https://civitai.com/models/72555",
+"https://civitai.com/models/72961",
+"https://civitai.com/models/75721",
+"https://civitai.com/models/80359",
+"https://civitai.com/models/82504",
+"https://civitai.com/models/84287",
+"https://civitai.com/models/84901",
+"https://civitai.com/models/86292",
+"https://civitai.com/models/87486",
+"https://civitai.com/models/91911",
+"https://civitai.com/models/92620",
+"https://civitai.com/models/93608",
+"https://civitai.com/models/94845",
+"https://civitai.com/models/95243",
+"https://civitai.com/models/96951",
+"https://civitai.com/models/97608",
+"https://civitai.com/models/99636",
         ]
 
     for x in range(len(str_list)):
         get_model_info_by_url2(str_list[x])
-        time.sleep(5)
+        time.sleep(1)
 
+    call_helper()
+
+import subprocess
+
+def call_helper():
+    try:
+        # 呼叫 helper.py 檔案
+        subprocess.run(["python", "lora_folder.py"])
+        print("已成功呼叫 lora_folder.py")
+    except Exception as e:
+        print(f"呼叫 lora_folder.py 時發生錯誤：{e}")

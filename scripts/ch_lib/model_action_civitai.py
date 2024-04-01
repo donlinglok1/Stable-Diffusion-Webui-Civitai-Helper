@@ -148,7 +148,7 @@ def get_model_info_by_input(model_type, model_name, model_url_or_id, max_size_pr
 
 # check models' new version and output to UI as markdown doc
 def check_models_new_version_to_md(model_types:list) -> str:
-    new_versions = civitai.check_models_new_version_by_model_types(model_types, 1)
+    new_versions = civitai.check_models_new_version_by_model_types(model_types, 0.05)
 
     count = 0
     output = ""
