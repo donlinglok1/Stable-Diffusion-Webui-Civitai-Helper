@@ -25,9 +25,20 @@ def open_model_url(msg, open_url_with_js):
         return
     
     model_type = result["model_type"]
-    search_term = result["search_term"]
+    search_term = ""
+    model_path = ""
+    model_info = None
 
-    model_info = civitai.load_model_info_by_search_term(model_type, search_term)
+    if "model_path" in result.keys():
+        model_path = result["model_path"]
+        util.printD(f"Open Url for {model_path}")
+        model_info = civitai.load_model_info_by_model_path(model_path)
+    else:
+        search_term = result["search_term"]
+        util.printD(f"Open Url for {search_term}")
+        model_info = civitai.load_model_info_by_search_term(model_type, search_term)
+
+    
     if not model_info:
         util.printD(f"Failed to get model info for {model_type} {search_term}")
         return ""
@@ -73,13 +84,22 @@ def add_trigger_words(msg):
     if not result:
         util.printD("Parsing js ms failed")
         return
-    
+
     model_type = result["model_type"]
-    search_term = result["search_term"]
+    search_term = ""
+    model_path = ""
     prompt = result["prompt"]
+    model_info = None
 
+    if "model_path" in result.keys():
+        model_path = result["model_path"]
+        util.printD(f"Add Trigger Words for {model_path}")
+        model_info = civitai.load_model_info_by_model_path(model_path)
+    else:
+        search_term = result["search_term"]
+        util.printD(f"Add Trigger Words for {search_term}")
+        model_info = civitai.load_model_info_by_search_term(model_type, search_term)
 
-    model_info = civitai.load_model_info_by_search_term(model_type, search_term)
     if not model_info:
         util.printD(f"Failed to get model info for {model_type} {search_term}")
         return [prompt, prompt]
@@ -126,12 +146,21 @@ def use_preview_image_prompt(msg):
         return
     
     model_type = result["model_type"]
-    search_term = result["search_term"]
+    search_term = ""
+    model_path = ""
     prompt = result["prompt"]
     neg_prompt = result["neg_prompt"]
+    model_info = None
 
+    if "model_path" in result.keys():
+        model_path = result["model_path"]
+        util.printD(f"Add Trigger Words for {model_path}")
+        model_info = civitai.load_model_info_by_model_path(model_path)
+    else:
+        search_term = result["search_term"]
+        util.printD(f"Add Trigger Words for {search_term}")
+        model_info = civitai.load_model_info_by_search_term(model_type, search_term)
 
-    model_info = civitai.load_model_info_by_search_term(model_type, search_term)
     if not model_info:
         util.printD(f"Failed to get model info for {model_type} {search_term}")
         return [prompt, neg_prompt, prompt, neg_prompt]
@@ -254,3 +283,75 @@ def dl_model_new_version(msg, max_size_preview, skip_nsfw_preview):
     output = "Done. Model downloaded to: " + new_model_path
     util.printD(output)
     return output
+
+
+
+# remove a model and all related files
+def remove_model_by_path(msg):
+    util.printD("Start remove_model_by_path")
+
+    output = ""
+    result = msg_handler.parse_js_msg(msg)
+    if not result:
+        output = "Parsing js ms failed"
+        util.printD(output)
+        return output
+    
+    model_type = result["model_type"]
+    search_term = ""
+    model_path = ""
+    
+
+    if "model_path" in result.keys():
+        model_path = result["model_path"]
+    else:
+        search_term = result["search_term"]
+        model_path = model.get_model_path_by_search_term(model_type, search_term)
+
+    if not model_path:
+        output = f"Fail to get model for {model_type} {search_term}"
+        util.printD(output)
+        return output
+
+    if not os.path.isfile(model_path):
+        output = f"Model {model_type} {search_term} does not exist, no need to remove"
+        util.printD(output)
+        return output
+    
+    # all files need to be removed
+    related_paths = []
+    related_paths.append(model_path)
+
+
+    # get info file
+    base, ext = os.path.splitext(model_path)
+    info_path = base + model.info_ext
+    first_preview_path = base+".png"
+    sec_preview_path = base+".preview.png"
+    civitai_info_path = base + civitai.suffix + model.info_ext
+
+    if os.path.isfile(civitai_info_path):
+        related_paths.append(civitai_info_path)
+
+    if os.path.isfile(first_preview_path):
+        related_paths.append(first_preview_path)
+
+    if os.path.isfile(sec_preview_path):
+        related_paths.append(sec_preview_path)
+
+    if os.path.isfile(info_path):
+        related_paths.append(info_path)
+
+    # remove files
+    for rp in related_paths:
+        if os.path.isfile(rp):
+            util.printD(f"Removing file {rp}")
+            os.remove(rp)
+
+    util.printD(f"{len(related_paths)} file removed")
+
+    util.printD("End remove_model_by_path")
+    return output
+
+
+

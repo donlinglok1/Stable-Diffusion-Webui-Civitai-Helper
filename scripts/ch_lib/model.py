@@ -8,6 +8,18 @@ from modules import shared
 
 # this is the default root path
 root_path = os.getcwd()
+util.printD(f"Root Path is: {root_path}")
+
+# if path is start with "~/" means root path is under linux's user home
+# so need to use os.path.expanduser("~") to get the real path
+if root_path.startswith("~/"):
+    user_home = os.path.expanduser("~")
+    util.printD(f"Root Path is under User Home: {user_home}")
+    root_path = os.path.join(user_home, root_path[2:])
+    util.printD(f"Expanded Root Path is: {root_path}")
+
+
+
 
 # if command line arguement is used to change model folder, 
 # then model folder is in absolute path, not based on this root path anymore.
@@ -117,4 +129,75 @@ def get_model_path_by_type_and_name(model_type:str, model_name:str) -> str:
     return
 
 
+
+
+# get model path by model type and search_term
+# parameter: model_type, search_term
+# return: model_path
+def get_model_path_by_search_term(model_type:str, search_term:str):
+    util.printD(f"Search model of {search_term} in {model_type}")
+    if model_type not in folders.keys():
+        util.printD("unknow model type: " + model_type)
+        return
+    
+    # for lora: search_term = subfolderpath + model name + ext + " " + hash. And it always start with a / even there is no sub folder
+    # for ckp: search_term = subfolderpath + model name + ext + " " + hash
+    # for ti: search_term = subfolderpath + model name + ext + " " + hash
+    # for hyper: search_term = subfolderpath + model name
+    has_hash = True
+    if model_type == "hyper":
+        has_hash = False
+    elif search_term.endswith(".pt") or search_term.endswith(".bin") or search_term.endswith(".safetensors") or search_term.endswith(".ckpt"):
+        has_hash = False
+
+    # remove hash
+    # model name may have multiple spaces
+    splited_path = search_term.split()
+    model_sub_path = splited_path[0]
+    if has_hash and len(splited_path) > 1:
+        model_sub_path = ""
+        for i in range(0, len(splited_path)-1):
+            model_sub_path += splited_path[i] + " "
+        
+        model_sub_path = model_sub_path.strip()
+
+    if model_sub_path[:1] == "/":
+        model_sub_path = model_sub_path[1:]
+
+    model_folder_name = "";
+    if model_type == "ti":
+        model_folder_name = "embeddings"
+    elif model_type == "hyper":
+        model_folder_name = "hypernetworks"
+    elif model_type == "ckp":
+        model_folder_name = "Stable-diffusion"
+    else:
+        model_folder_name = "Lora"
+
+    # check if model folder is already in search_term
+    if model_sub_path.startswith(model_folder_name):
+        # this is sd webui v1.8.0+'s search_term
+        # need to remove this model_folder_name+"/"or""\\" from model_sub_path
+        model_sub_path = model_sub_path[len(model_folder_name):]
+
+        if model_sub_path.startswith("/") or model_sub_path.startswith("\\"):
+            model_sub_path = model_sub_path[1:]
+
+    if model_type == "hyper":
+        if not model_sub_path.endswith(".pt"):
+            model_sub_path = model_sub_path+".pt"
+
+    model_folder = folders[model_type]
+
+    model_path = os.path.join(model_folder, model_sub_path)
+
+    print("model_folder: " + model_folder)
+    print("model_sub_path: " + model_sub_path)
+    print("model_path: " + model_path)
+
+    if not os.path.isfile(model_path):
+        util.printD("Can not find model file: " + model_path)
+        return
+    
+    return model_path
 

@@ -4,8 +4,8 @@ import json
 from . import util
 
 # action list
-js_actions = ("open_url", "add_trigger_words", "use_preview_prompt", "dl_model_new_version")
-py_actions = ("open_url")
+js_actions = ("open_url", "add_trigger_words", "use_preview_prompt", "dl_model_new_version", "remove_card")
+py_actions = ("open_url", "remove_card")
 
 
 # handle request from javascript
@@ -13,6 +13,8 @@ py_actions = ("open_url")
 # return: dict for result
 def parse_js_msg(msg):
     util.printD("Start parse js msg")
+    util.printD(f"Msg: {msg}")
+
     msg_dict = json.loads(msg)
 
     # in case client side run JSON.stringify twice
