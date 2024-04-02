@@ -1,18 +1,30 @@
 import os
 
-ani_tags = ['anime']
-real_tags = ['realistic']
-Character_tags = ['']
-Concept_tags = ['']
-Costume_tags = ['']
-Sex_tags = ['Sexy']
-Style_tags = ['Style']
+ani_tags = ['anime', 'video game', 'fgo', '3d']
+real_tags = ['photorealistic','realistic', 'pornstar']
+Character_tags = ['character', 'celebrity', 'characters', 'video game']
+Concept_tags = ['concept','poses']
+Costume_tags = ['clothing']
+Sex_tags = ['sexy']
+Style_tags = ['style']
 
 # 定義目標文件夾
-#target_directory = "D:\Lora"
+target_directory = "D:\Lora"
 
 # 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
 specific_extensions = {".model"}  # 替換為您想要的副檔名
+
+def move(source_path,target_path):
+    import os
+
+    try:
+        # 移動檔案
+        os.rename(source_path, target_path)  # 或者使用 os.replace() 來覆蓋目標位置的檔案
+        print(f"已成功移動檔案到：{target_path}")
+    except FileNotFoundError:
+        print(f"找不到原始檔案：{source_path}")
+    except Exception as e:
+        print(f"移動檔案時發生錯誤：{e}")
 
 # 篩選出特定副檔名的檔案
 for root, dirs, files in os.walk(target_directory):
@@ -22,12 +34,12 @@ for root, dirs, files in os.walk(target_directory):
         file_path = os.path.join(root, file)
         # 提取檔案副檔名
         file_name = os.path.splitext(file)[0]
-        file_name = file_name.replace(".civitai.info", "")
         file_extension = os.path.splitext(file)[1]
         # 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
         if file_extension in specific_extensions:
             try:
                 # 開啟檔案並讀取內容
+                target_folder = ""
                 with open(file_path, "r", encoding="utf-8") as file:
                     file_content = file.read()
                     
@@ -43,46 +55,57 @@ for root, dirs, files in os.walk(target_directory):
                             tagsKey = "tags"
                             if tagsKey in data:
                                 tagsValue = data[tagsKey]
-                                
+
                                 print(f"{baseModelValue} {tagsValue}。")
-                                isDone = False
                                 if baseModelValue=="Pony":
                                     target_folder += "\\pony"
                                 elif baseModelValue=="XL":
                                     target_folder += "\\xl"
 
-                                for tag in tags:
-                                    if tag in ani_tags:
+                                isFolderDone = False
+                                for tag in tagsValue:
+                                    if tag in ani_tags and isFolderDone == False:
                                         target_folder += "\\ani"
-                                    elif tag in real_tags:
+                                        isFolderDone = True
+                                    elif tag in real_tags and isFolderDone == False:
                                         target_folder += "\\real"
-                                    else
-                                        target_folder += "\\man"
+                                        isFolderDone = True
+                                
+                                if isFolderDone == False:
+                                    target_folder += "\\man"
+                                    isFolderDone = True
                                         
-                                for tag in tags:
-                                    if tag in Character_tags:
+                                isTypeDone = False
+                                for tag in tagsValue:
+                                    if tag in Character_tags and isTypeDone == False:
                                         target_folder += "\\Character"
-                                        isDone = True
-                                    if tag in Concept_tags:
+                                        isTypeDone = True
+                                    if tag in Concept_tags and isTypeDone == False:
                                         target_folder += "\\Concept"
-                                        isDone = True
-                                    if tag in Costume_tags:
+                                        isTypeDone = True
+                                    if tag in Costume_tags and isTypeDone == False:
                                         target_folder += "\\Costume"
-                                        isDone = True
-                                    if tag in Sex_tags:
+                                        isTypeDone = True
+                                    if tag in Sex_tags and isTypeDone == False:
                                         target_folder += "\\Sex"
-                                        isDone = True
-                                    if tag in Style_tags:
+                                        isTypeDone = True
+                                    if tag in Style_tags and isTypeDone == False:
                                         target_folder += "\\Style"
-                                        isDone = True
-
-                            print(f"{target_folder}")
+                                        isTypeDone = True
                         else:
                             print(f"找不到鍵 {baseModelKey}。")
                     except json.JSONDecodeError:
                         print("無法解析 JSON 文本。")
                     except Exception as e:
                         print(f"處理 JSON 時發生錯誤：{e}")
+                org = f"{os.path.splitext(file_path)[0].replace('.civitai.info','')}"
+                new = f"{target_directory+target_folder}\{file_name.replace('.civitai.info','')}"
+                print(new)
+
+                move(f"{org}.civitai.info",f"{new}.civitai.info")
+                move(f"{org}.civitai.info.model",f"{new}.civitai.info.model")
+                move(f"{org}.preview.png",f"{new}.preview.png")
+                move(f"{org}.safetensors",f"{new}.safetensors")
             except FileNotFoundError:
                 print(f"找不到檔案：{file_path}")
             except Exception as e:
