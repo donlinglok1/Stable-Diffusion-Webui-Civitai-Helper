@@ -5,7 +5,7 @@ real_tags = ['photorealistic','realistic', 'pornstar']
 Character_tags = ['character', 'celebrity', 'characters', 'video game']
 Concept_tags = ['concept','poses']
 Costume_tags = ['clothing']
-Sex_tags = ['sexy']
+Sex_tags = ['']
 Style_tags = ['style']
 
 # 定義目標文件夾
@@ -19,7 +19,7 @@ def move(source_path,target_path):
 
     try:
         # 移動檔案
-        os.rename(source_path, target_path)  # 或者使用 os.replace() 來覆蓋目標位置的檔案
+        os.replace(source_path, target_path)  # 或者使用 os.replace() 來覆蓋目標位置的檔案
         print(f"已成功移動檔案到：{target_path}")
     except FileNotFoundError:
         print(f"找不到原始檔案：{source_path}")
@@ -64,11 +64,11 @@ for root, dirs, files in os.walk(target_directory):
 
                                 isFolderDone = False
                                 for tag in tagsValue:
-                                    if tag in ani_tags and isFolderDone == False:
-                                        target_folder += "\\ani"
-                                        isFolderDone = True
-                                    elif tag in real_tags and isFolderDone == False:
+                                    if tag in real_tags and isFolderDone == False:
                                         target_folder += "\\real"
+                                        isFolderDone = True
+                                    elif tag in ani_tags and isFolderDone == False:
+                                        target_folder += "\\ani"
                                         isFolderDone = True
                                 
                                 if isFolderDone == False:
