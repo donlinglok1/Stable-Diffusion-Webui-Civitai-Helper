@@ -1,5 +1,8 @@
 import os
 
+pony_tags = ['Pony']
+xl_tags = ['SDXL 0.9','SDXL 1.0','SDXL 1.0 LCM','SDXL Distilled','SDXL Turbo']
+
 ani_tags = ['anime', 'video game', 'fgo', '3d']
 real_tags = ['photorealistic','realistic', 'pornstar']
 Character_tags = ['character', 'celebrity', 'characters', 'video game']
@@ -57,9 +60,9 @@ for root, dirs, files in os.walk(target_directory):
                                 tagsValue = data[tagsKey]
 
                                 print(f"{baseModelValue} {tagsValue}。")
-                                if baseModelValue=="Pony":
+                                if baseModelValue in pony_tags:
                                     target_folder += "\\pony"
-                                elif baseModelValue=="XL":
+                                elif baseModelValue in xl_tags:
                                     target_folder += "\\xl"
 
                                 isFolderDone = False

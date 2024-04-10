@@ -6,51 +6,152 @@ target_directory = "E:\stable-diffusion-output\gallery"
 # 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
 specific_extensions = {".png"}  # 替換為您想要的副檔名
 
-results = []
+import base64
+import cv2
+
+processes_deepdanbooru_file_path = "G:\git\stable-diffusion-webui\wildcards\processes_deepdanbooru_file_path.txt"  # 替換為您想要創建的檔案路徑
+
+processes_clip_file_path = "G:\git\stable-diffusion-webui\wildcards\processes_clip_file_path.txt"  # 替換為您想要創建的檔案路徑
+
+# 定義一個函數，將圖像文件轉換為 Base64 編碼
+def image_to_base64(image_path):
+    img = cv2.imread(str(image_path))
+    _, bytes = cv2.imencode(".png", img)
+    encoded_image = base64.b64encode(bytes).decode("utf-8")
+    return encoded_image
+
+def read_file_to_array(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+    return [line.strip() for line in lines]
+
+processes_deepdanbooru_file_path_array = read_file_to_array(processes_deepdanbooru_file_path)
+
+processes_clip_file_path_array = read_file_to_array(processes_clip_file_path)
 
 # 篩選出特定副檔名的檔案
-for root, dirs, files in os.walk(target_directory):
-    if(dirs == []):
-        #print(f"{root} {dirs}")
-        for file in files:
-            file_path = os.path.join(root, file)
-            # 提取檔案副檔名
-            file_name = os.path.splitext(file)[0]
-            file_name = file_name.replace(".png", "")
-            file_extension = os.path.splitext(file)[1]
-            # 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
-            if file_extension in specific_extensions:
-                from PIL import Image
+def genPrompt(mode):
+    results = []
+    for root, dirs, files in os.walk(target_directory):
+        if(dirs == []):
+            #print(f"{root} {dirs}")
+            for file in files:
+                file_path = os.path.join(root, file)
+                # 提取檔案副檔名
+                file_name = os.path.splitext(file)[0]
+                file_name = file_name.replace(".png", "")
+                file_extension = os.path.splitext(file)[1]
+                # 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
+                if file_extension in specific_extensions:
+                    if mode == "png":
+                        from PIL import Image
 
-                # 假設您有一個 PNG 圖像的路徑
-                image_path = file_path  # 替換為您想要讀取的實際圖像路徑
+                        # 假設您有一個 PNG 圖像的路徑
+                        image_path = file_path  # 替換為您想要讀取的實際圖像路徑
 
-                def check_image(image):
-                    with Image.open(image) as f:
-                        #print(f.info)
-                        target_key = "parameters"
-                        if target_key in f.info:
-                            target_value = f.info[target_key]
-                            target_value = target_value.split("Negative prompt:")[0]
-                            target_value = target_value.replace("\n", "")
-                            results.append(f"{target_value}")
-                        else:
-                            print(f"找不到鍵 {target_key}。")
-                            
-                check_image(image_path)
+                        def check_image(image):
+                            with Image.open(image) as f:
+                                #print(f.info)
+                                target_key = "parameters"
+                                if target_key in f.info:
+                                    target_value = f.info[target_key]
+                                    target_value = target_value.split("Negative prompt:")[0]
+                                    target_value = target_value.replace("\n", "")
+                                    results.append(f"{target_value}")
+                                else:
+                                    print(f"找不到鍵 {target_key}。")
+                                    
+                        check_image(image_path)
+                    
+                    if mode == "deepdanbooru":
+                        if file_name not in processes_deepdanbooru_file_path_array:
+                            import requests
 
-file_path = "G:\git\stable-diffusion-webui\wildcards\image_prompt.txt"  # 替換為您想要創建的檔案路徑
+                            # 定義 API 端點
+                            api_endpoint = "http://localhost:7861/sdapi/v1/interrogate"
 
-unique_strings = list(dict.fromkeys(results))
+                            # 假設 image_path 是你的圖像文件的路徑
+                            image_path = file_path
 
-try:
-    # 開啟檔案以寫入模式
-    with open(file_path, "w", encoding="utf-8") as file:
-        # 逐行寫入字串
-        for line in unique_strings:
-            file.write(line + "\n")
-        print(f"已成功寫入檔案：{file_path}")
-except Exception as e:
-    print(f"寫入檔案時發生錯誤：{e}")
+                            # 將圖像轉換為 Base64 編碼並輸出結果
+                            encoded_image = image_to_base64(image_path)
 
-    #POST http://localhost:7861/api/predict
+                            # 定義 POST 請求的資料
+                            data_payload = {
+                                "image": encoded_image,
+                                "model": "deepdanbooru"
+                            }
+
+                            # 發送 POST 請求
+                            response = requests.post(api_endpoint, json=data_payload)
+
+                            import json
+                            jj = json.loads(response.text)
+
+                            results.append(f"{file_name}圖{jj['caption']}")
+                            print(f"{file_name}圖{jj['caption']}")
+                            with open(processes_deepdanbooru_file_path, "a", encoding="utf-8") as file:
+                                file.write(f"{file_name}" + "\n")
+
+                            file_path = "G:\git\stable-diffusion-webui\wildcards\image_prompt_deepdanbooru.txt"  # 替換為您想要創建的檔案路徑
+                            with open(file_path, "a", encoding="utf-8") as file:
+                                file.write(f"{file_name}圖{jj['caption']}" + "\n")
+                    
+                    if mode == "clip":
+                        if file_name not in processes_clip_file_path_array:
+                            import requests
+
+                            # 定義 API 端點
+                            api_endpoint = "http://localhost:7861/sdapi/v1/interrogate"
+
+                            # 假設 image_path 是你的圖像文件的路徑
+                            image_path = file_path
+
+                            # 將圖像轉換為 Base64 編碼並輸出結果
+                            encoded_image = image_to_base64(image_path)
+
+                            # 定義 POST 請求的資料
+                            data_payload = {
+                                "image": encoded_image,
+                                "model": "clip"
+                            }
+
+                            # 發送 POST 請求
+                            response = requests.post(api_endpoint, json=data_payload)
+
+                            import json
+                            jj = json.loads(response.text)
+
+                            results.append(f"{file_name}圖{jj['caption']}")
+                            print(f"{file_name}圖{jj['caption']}")
+                            with open(processes_clip_file_path, "a", encoding="utf-8") as file:
+                                file.write(f"{file_name}" + "\n")
+
+                            file_path = "G:\git\stable-diffusion-webui\wildcards\image_prompt_clip.txt"  # 替換為您想要創建的檔案路徑
+                            with open(file_path, "a", encoding="utf-8") as file:
+                                file.write(f"{file_name}圖{jj['caption']}" + "\n")
+
+    if mode == "png":
+        file_path = "G:\git\stable-diffusion-webui\wildcards\image_prompt.txt"  # 替換為您想要創建的檔案路徑
+
+    if mode == "clip":
+        file_path = "G:\git\stable-diffusion-webui\wildcards\image_prompt_clip.txt"  # 替換為您想要創建的檔案路徑
+
+    if mode == "deepdanbooru":
+        file_path = "G:\git\stable-diffusion-webui\wildcards\image_prompt_deepdanbooru.txt"  # 替換為您想要創建的檔案路徑
+
+    unique_strings = list(dict.fromkeys(results))
+
+    try:
+        # 開啟檔案以寫入模式
+        with open(file_path, "a", encoding="utf-8") as file:
+            # 逐行寫入字串
+            for line in unique_strings:
+                file.write(line + "\n")
+            print(f"已成功寫入檔案：{file_path}")
+    except Exception as e:
+        print(f"寫入檔案時發生錯誤：{e}")
+
+genPrompt("png")
+#genPrompt("clip")
+genPrompt("deepdanbooru")
