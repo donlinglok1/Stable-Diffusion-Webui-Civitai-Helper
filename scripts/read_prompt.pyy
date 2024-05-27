@@ -9,10 +9,6 @@ specific_extensions = {".png"}  # 替換為您想要的副檔名
 import base64
 import cv2
 
-processes_deepdanbooru_file_path = "G:\git\stable-diffusion-webui\wildcards\processes_deepdanbooru_file_path.txt"  # 替換為您想要創建的檔案路徑
-
-processes_clip_file_path = "G:\git\stable-diffusion-webui\wildcards\processes_clip_file_path.txt"  # 替換為您想要創建的檔案路徑
-
 # 定義一個函數，將圖像文件轉換為 Base64 編碼
 def image_to_base64(image_path):
     img = cv2.imread(str(image_path))
@@ -24,10 +20,6 @@ def read_file_to_array(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     return [line.strip() for line in lines]
-
-processes_deepdanbooru_file_path_array = read_file_to_array(processes_deepdanbooru_file_path)
-
-processes_clip_file_path_array = read_file_to_array(processes_clip_file_path)
 
 # 篩選出特定副檔名的檔案
 def genPrompt(mode):
@@ -97,61 +89,20 @@ def genPrompt(mode):
                             with open(file_path, "a", encoding="utf-8") as file:
                                 file.write(f"{file_name}圖{jj['caption']}" + "\n")
                     
-                    if mode == "clip":
-                        if file_name not in processes_clip_file_path_array:
-                            import requests
-
-                            # 定義 API 端點
-                            api_endpoint = "http://localhost:7861/sdapi/v1/interrogate"
-
-                            # 假設 image_path 是你的圖像文件的路徑
-                            image_path = file_path
-
-                            # 將圖像轉換為 Base64 編碼並輸出結果
-                            encoded_image = image_to_base64(image_path)
-
-                            # 定義 POST 請求的資料
-                            data_payload = {
-                                "image": encoded_image,
-                                "model": "clip"
-                            }
-
-                            # 發送 POST 請求
-                            response = requests.post(api_endpoint, json=data_payload)
-
-                            import json
-                            jj = json.loads(response.text)
-
-                            results.append(f"{file_name}圖{jj['caption']}")
-                            print(f"{file_name}圖{jj['caption']}")
-                            with open(processes_clip_file_path, "a", encoding="utf-8") as file:
-                                file.write(f"{file_name}" + "\n")
-
-                            file_path = "G:\git\stable-diffusion-webui\wildcards\image_prompt_clip.txt"  # 替換為您想要創建的檔案路徑
-                            with open(file_path, "a", encoding="utf-8") as file:
-                                file.write(f"{file_name}圖{jj['caption']}" + "\n")
-
     if mode == "png":
         file_path = "G:\git\stable-diffusion-webui\wildcards\image_prompt.txt"  # 替換為您想要創建的檔案路徑
 
-    if mode == "clip":
-        file_path = "G:\git\stable-diffusion-webui\wildcards\image_prompt_clip.txt"  # 替換為您想要創建的檔案路徑
+        unique_strings = list(dict.fromkeys(results))
 
-    if mode == "deepdanbooru":
-        file_path = "G:\git\stable-diffusion-webui\wildcards\image_prompt_deepdanbooru.txt"  # 替換為您想要創建的檔案路徑
+        try:
+            # 開啟檔案以寫入模式
+            with open(file_path, "a", encoding="utf-8") as file:
+                # 逐行寫入字串
+                for line in unique_strings:
+                    file.write(line + "\n")
+                print(f"已成功寫入檔案：{file_path}")
+        except Exception as e:
+            print(f"寫入檔案時發生錯誤：{e}")
 
-    unique_strings = list(dict.fromkeys(results))
-
-    try:
-        # 開啟檔案以寫入模式
-        with open(file_path, "a", encoding="utf-8") as file:
-            # 逐行寫入字串
-            for line in unique_strings:
-                file.write(line + "\n")
-            print(f"已成功寫入檔案：{file_path}")
-    except Exception as e:
-        print(f"寫入檔案時發生錯誤：{e}")
-
-genPrompt("png")
-#genPrompt("clip")
-genPrompt("deepdanbooru")
+#genPrompt("png")
+#genPrompt("deepdanbooru")

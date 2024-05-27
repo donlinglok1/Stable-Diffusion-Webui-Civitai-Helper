@@ -1,0 +1,17 @@
+import os
+
+# 定義目標文件夾
+targets = [
+]
+
+for file in targets:
+    file = file.replace(".safetensors", "")
+    import os
+    if os.path.exists(file+".safetensors"):
+        os.remove(file+".safetensors")
+    if os.path.exists(file+".civitai.info"):
+        os.remove(file+".civitai.info")
+    if os.path.exists(file+".civitai.info.model"):
+        os.remove(file+".civitai.info.model")
+    if os.path.exists(file+".preview.png"):
+        os.remove(file+".preview.png")

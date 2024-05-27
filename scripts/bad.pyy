@@ -1,0 +1,83 @@
+import os
+import re
+
+exclude_list = ['add-detail-xl', 'Expressive_H-000001', 'sinfully_stylish_SDXL', 'Concept Art Twilight Style SDXL_LoRA_Pony Diffusion V6 XL', 'Smooth Anime 2 Style SDXL_LoRA_Pony Diffusion V6 XL']
+
+# 定義目標文件夾
+target_directory = "E:\\stable-diffusion-output\\Bad\\Pony bad char"
+target_directory2 = "E:\Lora\\pony\\Character"
+
+bad_lora_folder = "E:\\stable-diffusion-output\\Bad_Lora"
+
+# 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
+specific_extensions = {".png"}  # 替換為您想要的副檔名
+
+import base64
+
+# 定義一個函數，將圖像文件轉換為 Base64 編碼
+def image_to_base64(image_path):
+    import cv2
+    img = cv2.imread(str(image_path))
+    _, bytes = cv2.imencode(".png", img)
+    encoded_image = base64.b64encode(bytes).decode("utf-8")
+    return encoded_image
+
+def read_file_to_array(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+    return [line.strip() for line in lines]
+
+# 篩選出特定副檔名的檔案
+results = []
+for root, dirs, files in os.walk(target_directory):
+    if(dirs == []):
+        #print(f"{root} {dirs}")
+        for file in files:
+            file_path = os.path.join(root, file)
+            # 提取檔案副檔名
+            file_name = os.path.splitext(file)[0]
+            file_name = file_name.replace(".png", "")
+            file_extension = os.path.splitext(file)[1]
+            # 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
+            if file_extension in specific_extensions:
+                from PIL import Image
+
+                # 假設您有一個 PNG 圖像的路徑
+                image_path = file_path  # 替換為您想要讀取的實際圖像路徑
+
+                with Image.open(image_path) as f:
+                    #print(f.info)
+                    target_key = "parameters"
+                    try:
+                        if target_key in f.info:
+                            target_value = f.info[target_key]
+                            target_value = target_value.split("Negative prompt:")[0]
+                            target_value = target_value.replace("\n", "")
+                            #print(f"{target_value}")
+                            
+                            pattern = r"<lora:[a-zA-Z0-9\_\-\s]*:[0-9][\.]*[0-9]*>"
+                            allLoraList = re.findall(pattern, target_value)
+                            for t1 in allLoraList:
+                                t1 = t1.split(">")[0]
+                                t1 = t1.split("<")[1]
+                                t1 = t1.split(":")[1]
+                                if t1 not in exclude_list:
+                                    target_value = t1
+                                    print(target_value)
+                            
+                                if os.path.exists(target_directory2+"\\"+target_value+".safetensors"):
+                                    os.replace(target_directory2+"\\"+target_value+".safetensors", bad_lora_folder+"\\"+target_value+".safetensors")
+
+                                if os.path.exists(target_directory2+"\\"+target_value+".civitai.info"):
+                                    os.replace(target_directory2+"\\"+target_value+".civitai.info", bad_lora_folder+"\\"+target_value+".civitai.info")
+
+                                if os.path.exists(target_directory2+"\\"+target_value+".civitai.info.model"):
+                                    os.replace(target_directory2+"\\"+target_value+".civitai.info.model", bad_lora_folder+"\\"+target_value+".civitai.info.model")
+
+                                if os.path.exists(target_directory2+"\\"+target_value+".preview.png"):
+                                     os.replace(target_directory2+"\\"+target_value+".preview.png", bad_lora_folder+"\\"+target_value+".preview.png")
+
+                        else:
+                            print(f"找不到鍵 {target_key}。")
+                    except Exception as e:
+                        print(f"")                    

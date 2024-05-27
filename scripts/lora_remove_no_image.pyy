@@ -24,3 +24,4 @@ for root, dirs, files in os.walk(target_directory):
                     os.remove(root+"\\"+file_name+".safetensors")
                     os.remove(root+"\\"+file_name+".civitai.info")
                     os.remove(root+"\\"+file_name+".civitai.info.model")
+                    print(file_name)

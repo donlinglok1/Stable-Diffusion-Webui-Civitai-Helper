@@ -12,7 +12,7 @@ Sex_tags = ['']
 Style_tags = ['style']
 
 # 定義目標文件夾
-target_directory = "D:\Lora"
+target_directory = "D:\\Lora"
 
 # 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
 specific_extensions = {".model"}  # 替換為您想要的副檔名
@@ -40,7 +40,6 @@ for root, dirs, files in os.walk(target_directory):
         file_extension = os.path.splitext(file)[1]
         # 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
         if file_extension in specific_extensions:
-            try:
                 # 開啟檔案並讀取內容
                 target_folder = ""
                 with open(file_path, "r", encoding="utf-8") as file:
@@ -60,22 +59,27 @@ for root, dirs, files in os.walk(target_directory):
                                 tagsValue = data[tagsKey]
 
                                 print(f"{baseModelValue} {tagsValue}。")
+                                isPony = False
                                 if baseModelValue in pony_tags:
                                     target_folder += "\\pony"
+                                    isPony = True
                                 elif baseModelValue in xl_tags:
                                     target_folder += "\\xl"
 
                                 isFolderDone = False
                                 for tag in tagsValue:
-                                    if tag in real_tags and isFolderDone == False:
+                                    if tag in real_tags and isFolderDone == False and isPony == False:
                                         target_folder += "\\real"
                                         isFolderDone = True
-                                    elif tag in ani_tags and isFolderDone == False:
+                                    elif tag in ani_tags and isFolderDone == False and isPony == False:
                                         target_folder += "\\ani"
                                         isFolderDone = True
                                 
-                                if isFolderDone == False:
+                                if isFolderDone == False and isPony == False:
                                     target_folder += "\\man"
+                                    isFolderDone = True
+                                if isFolderDone == False and isPony == True:
+                                    target_folder += ""
                                     isFolderDone = True
                                         
                                 isTypeDone = False
@@ -95,6 +99,10 @@ for root, dirs, files in os.walk(target_directory):
                                     if tag in Style_tags and isTypeDone == False:
                                         target_folder += "\\Style"
                                         isTypeDone = True
+                                
+                                #for tag in sorted(tagsValue[:3]):
+                                #        target_folder += "\\"+tag
+
                         else:
                             print(f"找不到鍵 {baseModelKey}。")
                     except json.JSONDecodeError:
@@ -102,15 +110,19 @@ for root, dirs, files in os.walk(target_directory):
                     except Exception as e:
                         print(f"處理 JSON 時發生錯誤：{e}")
                 org = f"{os.path.splitext(file_path)[0].replace('.civitai.info','')}"
-                new = f"{target_directory+target_folder}\{file_name.replace('.civitai.info','')}"
+                #org = org.replace(' ', '\\ ')
+                new = f"{target_directory+target_folder}\\{file_name.replace('.civitai.info','')}"
+                #new = new.replace(' ', '\\ ')
                 print(new)
+                if not os.path.exists(os.path.dirname(new)):
+                    try:
+                        os.makedirs(os.path.dirname(new))
+                    except OSError as exc: # Guard against race condition
+                        if exc.errno != errno.EEXIST:
+                            raise
 
                 move(f"{org}.civitai.info",f"{new}.civitai.info")
                 move(f"{org}.civitai.info.model",f"{new}.civitai.info.model")
                 move(f"{org}.preview.png",f"{new}.preview.png")
                 move(f"{org}.safetensors",f"{new}.safetensors")
-            except FileNotFoundError:
-                print(f"找不到檔案：{file_path}")
-            except Exception as e:
-                print(f"讀取檔案時發生錯誤：{e}")
     break

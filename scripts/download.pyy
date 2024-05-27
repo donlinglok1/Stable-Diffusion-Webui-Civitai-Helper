@@ -1224,8 +1224,17 @@ def get_model_info_by_url2(url):
 on_ui_tabs()
 import time
 if __name__ == '__main__':
+    with open('civitai.html', 'r') as file:
+        civitaiHTML = file.read().replace('\n', '')
+        
+        match = re.findall(r'href="\/models\/[0-9]*"', civitaiHTML)
+        print(match)
+
     str_list = [
-        ]
+            ]
+
+    for herfItem in match:
+        str_list.append(herfItem.replace('\"','').replace('href=','https://civitai.com'))
 
     for x in range(len(str_list)):
         get_model_info_by_url2(str_list[x])
@@ -1239,3 +1248,10 @@ if __name__ == '__main__':
         print("已成功呼叫 lora_folder.pyy")
     except Exception as e:
         print(f"呼叫 lora_folder.py 時發生錯誤：{e}")
+
+    try:
+        # 呼叫 helper.py 檔案
+        subprocess.run(["python", "lora_prompt.pyy"])
+        print("已成功呼叫 lora_prompt.pyy")
+    except Exception as e:
+        print(f"呼叫 lora_prompt.py 時發生錯誤：{e}")

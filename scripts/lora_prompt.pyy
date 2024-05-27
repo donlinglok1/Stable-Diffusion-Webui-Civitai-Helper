@@ -1,14 +1,99 @@
 import os
 
 # 定義目標文件夾
-target_directory = "E:\Lora"
+target_directory = "E:\\Lora"
 
 # 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
 specific_extensions = {".info"}  # 替換為您想要的副檔名
 
+import base64
+
+# 定義一個函數，將圖像文件轉換為 Base64 編碼
+def image_to_base64(image_path):
+    import cv2
+    img = cv2.imread(str(image_path))
+    _, bytes = cv2.imencode(".png", img)
+    encoded_image = base64.b64encode(bytes).decode("utf-8")
+    return encoded_image
+
+def read_file_to_array(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+    return [line.strip() for line in lines]
+
+def read_safetensors(file_path):
+    import pandas as pd
+    import re
+
+    def process_file(file, encoding, tag_count):
+        with open(file, 'r', encoding=encoding) as f:
+            tag_content = f.read()
+
+        # Search for the content between the quotes of the "ss_tag_frequency" tag
+        match = re.search(r'"ss_tag_frequency":"({.+?})"', tag_content)
+        if match is None:
+        #    print("The 'ss_tag_frequency' tag was not found in the file.")
+            return []
+
+        tag_content = match.group(1)
+
+        # Extract the tag-frequency pairs using regular expressions
+        pairs = re.findall(r'"([^"]+)": (\d+)', tag_content)
+
+        # Create a list of dictionaries with the tag data
+        data_list = [{'Tag': tag, 'Frequency': int(frequency)} for tag, frequency in pairs]
+
+        return data_list
+
+    fname = file_path.replace(".civitai.info",".safetensors")
+    encoding = 'latin-1'  # Replace 'utf-8' with the correct encoding of your file
+    tag_count = 50 + 1  # Define the number of tags to display by replacing 50 with the desired value
+
+    frequency_list = process_file(fname, encoding, tag_count)
+
+    prompt = ""
+    for fitem in frequency_list[:5]:
+        prompt += f"{fitem['Tag'][:-1]},"
+        
+    #if prompt == "":
+    #    prompt += f"1girl, black background, breasts, looking at viewer, medium breasts, simple background, solo, upper body,"
+            
+    if prompt.count(',') < 4:
+    #    prompt = f"1girl, black background, breasts, looking at viewer, medium breasts, simple background, solo, upper body,"
+        return ""
+    else:
+        return f"<lora:{file_name}:0.8> {prompt}"
+    
+def interrogate_api(file_path):
+    import requests
+
+    # 定義 API 端點
+    api_endpoint = "http://localhost:7861/sdapi/v1/interrogate"
+
+    # 假設 image_path 是你的圖像文件的路徑
+    image_path = file_path.replace(".civitai.info",".preview.png")
+
+    # 將圖像轉換為 Base64 編碼並輸出結果
+    encoded_image = image_to_base64(image_path)
+
+    # 定義 POST 請求的資料
+    data_payload = {
+        "image": encoded_image,
+        "model": "deepdanbooru"
+    }
+
+    # 發送 POST 請求
+    response = requests.post(api_endpoint, json=data_payload)
+
+    import json
+    jj = json.loads(response.text)
+
+    return f"<lora:{file_name}:0.8> {jj['caption']}"
+
 # 篩選出特定副檔名的檔案
 for root, dirs, files in os.walk(target_directory):
-    results = []
+    lora_prompt_array = []
+    lora_name_array = []
     if(dirs == []):
         print(f"{root} {dirs}")
         for file in files:
@@ -16,6 +101,7 @@ for root, dirs, files in os.walk(target_directory):
             # 提取檔案副檔名
             file_name = os.path.splitext(file)[0]
             file_name = file_name.replace(".civitai", "")
+            
             file_extension = os.path.splitext(file)[1]
             # 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
             if file_extension in specific_extensions:
@@ -29,64 +115,31 @@ for root, dirs, files in os.walk(target_directory):
                         try:
                             data = json.loads(file_content)
                             # 提取特定的鍵值（例如 "name"）
-                            target_key = "trainedWords"
-                            prompt = ""
-                            if target_key in data:
-                                target_value = data[target_key]
+                            if "images" in data:
+                                prompt = ""
+                                for image in data["images"]:
+                                    prompt = ""
+                                    pp = image["meta"]["prompt"]
+                                    prompt += f"{pp},"
+                                    prompt = prompt.replace("\n", "")
+                                    if prompt == "":
+                                        prompt += f"1girl, black background, breasts, looking at viewer, medium breasts, simple background, solo, upper body,"
+                                        
+                                    if prompt.count(',') < 4:
+                                        prompt = f"1girl, black background, breasts, looking at viewer, medium breasts, simple background, solo, upper body,"
+
+                                    if "__" not in prompt:
+                                        lora_prompt_array.append(f"{prompt}")
+                                        
+                            if "trainedWords" in data:
+                                prompt = ""
+                                target_value = data["trainedWords"]
                                 for trainedWord in target_value:
                                     prompt += f"{trainedWord},"
                                 
-                                if prompt == "":
-                                    prompt += f"1girl,"
-                                results.append(f"<lora:{file_name}:1.0> {prompt}")
-                            else:
-                                print(f"找不到鍵 {target_key}。")
-
-                            import pandas as pd
-                            import re
-
-                            def process_file(file, encoding, tag_count):
-                                with open(file, 'r', encoding=encoding) as f:
-                                    tag_content = f.read()
-
-                                # Search for the content between the quotes of the "ss_tag_frequency" tag
-                                match = re.search(r'"ss_tag_frequency":"({.+?})"', tag_content)
-                                if match is None:
-                                    print("The 'ss_tag_frequency' tag was not found in the file.")
-                                    return []
-
-                                tag_content = match.group(1)
-
-                                # Extract the tag-frequency pairs using regular expressions
-                                pairs = re.findall(r'"([^"]+)": (\d+)', tag_content)
-
-                                # Create a list of dictionaries with the tag data
-                                data_list = [{'Tag': tag, 'Frequency': int(frequency)} for tag, frequency in pairs]
-
-                                return data_list
-
-                            fname = file_path.replace(".civitai.info",".safetensors")
-                            encoding = 'latin-1'  # Replace 'utf-8' with the correct encoding of your file
-                            tag_count = 50 + 1  # Define the number of tags to display by replacing 50 with the desired value
-
-                            frequency_list = process_file(fname, encoding, tag_count)
-
-                            prompt = ""
-                            for fitem in frequency_list[:5]:
-                                prompt += f"{fitem['Tag']},"
-                                
-                            if prompt == "":
-                                prompt += f"1girl,"
-                            results.append(f"<lora:{file_name}:1.0> {prompt}")
-
-                            #for image in data["images"]:
-                            #    prompt = ""
-                            #    pp = image["meta"]["prompt"]
-                            #    prompt += f"{pp},"
-                            #    prompt = prompt.replace("\n", "")
-                            #    results.append(f"{prompt}")
-                            #else:
-                            #    print(f"找不到鍵 {target_key}。")
+                                if "__" not in prompt:
+                                    lora_name_array.append(f"<lora:{file_name}:0.8> {prompt}")
+                            
                         except json.JSONDecodeError:
                             print("無法解析 JSON 文本。")
                         except Exception as e:
@@ -95,19 +148,42 @@ for root, dirs, files in os.walk(target_directory):
                     print(f"找不到檔案：{file_path}")
                 except Exception as e:
                     print(f"讀取檔案時發生錯誤：{e}")
+                    
+                #r1 = read_safetensors(file_path)
+                #lora_prompt_array.append(r1)
+                #lora_name_array.append(f"<lora:{file_name}:0.8>")
+                #print(r1)
+
+                #r2 = interrogate_api(file_path)
+                #lora_prompt_array.append(r2)
+                #lora_name_array.append(f"<lora:{file_name}:0.8>")
+                #print(r2)
 
         # 定義目標檔案的路徑
         out_prompt_file = root.replace("E:\\Lora", "")
-        file_path = "G:\git\stable-diffusion-webui\wildcards"+out_prompt_file+".txt"  # 替換為您想要創建的檔案路徑
+        lora_name_file_path = "G:\git\stable-diffusion-webui\wildcards"+out_prompt_file+"_name.txt"  # 替換為您想要創建的檔案路徑
+        lora_prompt_file_path = "G:\git\stable-diffusion-webui\wildcards"+out_prompt_file+".txt"  # 替換為您想要創建的檔案路徑
 
-        unique_strings = list(dict.fromkeys(results))
+        lora_name_array_list = list(dict.fromkeys(lora_name_array))
 
         try:
             # 開啟檔案以寫入模式
-            with open(file_path, "w", encoding="utf-8") as file:
+            with open(lora_name_file_path, "w", encoding="utf-8") as file:
                 # 逐行寫入字串
-                for line in unique_strings:
+                for line in lora_name_array_list:
                     file.write(line + "\n")
-                print(f"已成功寫入檔案：{file_path}")
+                print(f"已成功寫入檔案：{lora_name_file_path}")
+        except Exception as e:
+            print(f"寫入檔案時發生錯誤：{e}")
+
+        lora_prompt_array_list = list(dict.fromkeys(lora_prompt_array))
+
+        try:
+            # 開啟檔案以寫入模式
+            with open(lora_prompt_file_path, "w", encoding="utf-8") as file:
+                # 逐行寫入字串
+                for line in lora_prompt_array_list:
+                    file.write(line + "\n")
+                print(f"已成功寫入檔案：{lora_prompt_file_path}")
         except Exception as e:
             print(f"寫入檔案時發生錯誤：{e}")
