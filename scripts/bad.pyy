@@ -1,83 +1,76 @@
 import os
 import re
+from PIL import Image
 
-exclude_list = ['add-detail-xl', 'Expressive_H-000001', 'sinfully_stylish_SDXL', 'Concept Art Twilight Style SDXL_LoRA_Pony Diffusion V6 XL', 'Smooth Anime 2 Style SDXL_LoRA_Pony Diffusion V6 XL']
+bad_image_folder = "E:\\stable-diffusion-output\\Bad\\Bad mix char sex"
+lora_folder = "E:\Lora\\pony"
+ourput_lora_folder = "E:\\stable-diffusion-output\\Bad_Lora"
+search_extensions = ".png"
+search_extensions2 = ".safetensors"
 
-# 定義目標文件夾
-target_directory = "E:\\stable-diffusion-output\\Bad\\Pony bad char"
-target_directory2 = "E:\Lora\\pony\\Character"
+exclude_lora_list = [
+    'add-detail-xl', 
+    'Expressive_H-000001', 
+    'sinfully_stylish_SDXL', 
+    'Concept Art Twilight Style SDXL_LoRA_Pony Diffusion V6 XL', 
+    'Smooth Anime 2 Style SDXL_LoRA_Pony Diffusion V6 XL'
+    ]
+remove_lora_list = []
 
-bad_lora_folder = "E:\\stable-diffusion-output\\Bad_Lora"
+def move(source_path,target_path):
+    try:
+        # 移動檔案
+        os.replace(source_path, target_path)  # 或者使用 os.replace() 來覆蓋目標位置的檔案
+        print(f"已成功移動檔案到：{target_path}")
+    except FileNotFoundError:
+        print(f"找不到原始檔案：{source_path}")
+    except Exception as e:
+        print(f"移動檔案時發生錯誤：{e}")
 
-# 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
-specific_extensions = {".png"}  # 替換為您想要的副檔名
-
-import base64
-
-# 定義一個函數，將圖像文件轉換為 Base64 編碼
-def image_to_base64(image_path):
-    import cv2
-    img = cv2.imread(str(image_path))
-    _, bytes = cv2.imencode(".png", img)
-    encoded_image = base64.b64encode(bytes).decode("utf-8")
-    return encoded_image
-
-def read_file_to_array(file_path):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        lines = file.readlines()
-    return [line.strip() for line in lines]
-
-# 篩選出特定副檔名的檔案
-results = []
-for root, dirs, files in os.walk(target_directory):
+for root, dirs, files in os.walk(bad_image_folder):
     if(dirs == []):
-        #print(f"{root} {dirs}")
         for file in files:
-            file_path = os.path.join(root, file)
-            # 提取檔案副檔名
-            file_name = os.path.splitext(file)[0]
-            file_name = file_name.replace(".png", "")
+            file_name = os.path.splitext(file)[0].replace(search_extensions, "")
             file_extension = os.path.splitext(file)[1]
-            # 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
-            if file_extension in specific_extensions:
-                from PIL import Image
-
-                # 假設您有一個 PNG 圖像的路徑
-                image_path = file_path  # 替換為您想要讀取的實際圖像路徑
-
-                with Image.open(image_path) as f:
+            if file_extension == search_extensions:
+                with Image.open(root+"\\"+file_name+search_extensions) as f:
                     #print(f.info)
-                    target_key = "parameters"
+                    parametersKey = "parameters"
                     try:
-                        if target_key in f.info:
-                            target_value = f.info[target_key]
-                            target_value = target_value.split("Negative prompt:")[0]
-                            target_value = target_value.replace("\n", "")
-                            #print(f"{target_value}")
-                            
-                            pattern = r"<lora:[a-zA-Z0-9\_\-\s]*:[0-9][\.]*[0-9]*>"
-                            allLoraList = re.findall(pattern, target_value)
-                            for t1 in allLoraList:
-                                t1 = t1.split(">")[0]
-                                t1 = t1.split("<")[1]
-                                t1 = t1.split(":")[1]
-                                if t1 not in exclude_list:
-                                    target_value = t1
-                                    print(target_value)
-                            
-                                if os.path.exists(target_directory2+"\\"+target_value+".safetensors"):
-                                    os.replace(target_directory2+"\\"+target_value+".safetensors", bad_lora_folder+"\\"+target_value+".safetensors")
-
-                                if os.path.exists(target_directory2+"\\"+target_value+".civitai.info"):
-                                    os.replace(target_directory2+"\\"+target_value+".civitai.info", bad_lora_folder+"\\"+target_value+".civitai.info")
-
-                                if os.path.exists(target_directory2+"\\"+target_value+".civitai.info.model"):
-                                    os.replace(target_directory2+"\\"+target_value+".civitai.info.model", bad_lora_folder+"\\"+target_value+".civitai.info.model")
-
-                                if os.path.exists(target_directory2+"\\"+target_value+".preview.png"):
-                                     os.replace(target_directory2+"\\"+target_value+".preview.png", bad_lora_folder+"\\"+target_value+".preview.png")
-
-                        else:
-                            print(f"找不到鍵 {target_key}。")
+                        parametersValue = f.info[parametersKey]
+                        parametersValue = parametersValue.split("Negative prompt:")[0]
+                        parametersValue = parametersValue.replace("\n", "")
+                        #print(f"{parametersValue}")
+                        
+                        pattern = r"<lora:[a-zA-Z0-9\_\-\s]*:[0-9][\.]*[0-9]*>"
+                        allLoraList = re.findall(pattern, parametersValue)
+                        for lora_tag in allLoraList:
+                            lora_tag = lora_tag.split(">")[0]
+                            lora_tag = lora_tag.split("<")[1]
+                            lora_tag = lora_tag.split(":")[1]
+                            if lora_tag not in exclude_lora_list:
+                                remove_lora_list.append(lora_tag)
                     except Exception as e:
-                        print(f"")                    
+                        print(e)                    
+
+for root, dirs, files in os.walk(lora_folder):
+    if(dirs == []):
+        for file in files:
+            file_name = os.path.splitext(file)[0].replace(search_extensions, "")
+            file_extension = os.path.splitext(file)[1]
+            if file_extension == search_extensions2:
+                if file_name in remove_lora_list:       
+                    new = f"{ourput_lora_folder}\\{file_name}"
+                    print(new)
+
+                    if not os.path.exists(os.path.dirname(new)):
+                        try:
+                            os.makedirs(os.path.dirname(new))
+                        except OSError as exc: # Guard against race condition
+                            if exc.errno != errno.EEXIST:
+                                raise
+
+                    move(f"{root+"\\"+file_name}.civitai.info",f"{new}.civitai.info")
+                    move(f"{root+"\\"+file_name}.civitai.info.model",f"{new}.civitai.info.model")
+                    move(f"{root+"\\"+file_name}.preview.png",f"{new}.preview.png")
+                    move(f"{root+"\\"+file_name}.safetensors",f"{new}.safetensors")

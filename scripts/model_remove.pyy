@@ -6,7 +6,7 @@ targets = [
 
 for file in targets:
     file = file.replace(".safetensors", "")
-    import os
+    print(file)
     if os.path.exists(file+".safetensors"):
         os.remove(file+".safetensors")
     if os.path.exists(file+".civitai.info"):

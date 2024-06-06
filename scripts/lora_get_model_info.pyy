@@ -1,0 +1,88 @@
+import os
+import json
+import requests
+
+def_headers = {'User-Agent': 'Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148',
+               "Authorization": ""}
+url_dict = {
+    "modelPage":"https://civitai.com/models/",
+    "modelId": "https://civitai.com/api/v1/models/",
+    "modelVersionId": "https://civitai.com/api/v1/model-versions/",
+    "hash": "https://civitai.com/api/v1/model-versions/by-hash/"
+}
+
+search_folder = "D:\\Lora"
+search_extensions = ".safetensors"
+
+def write_info(path, model_info):
+    print("Write model info to file: " + path)
+    with open(os.path.realpath(path), 'w') as f:
+        f.write(json.dumps(model_info, indent=4))
+
+def get_model_info_by_id(id:str) -> dict:
+    print("Request model info from civitai")
+
+    if not id:
+        print("id is empty")
+        return
+
+    r = requests.get(url_dict["modelId"]+str(id), headers=def_headers)
+    if not r.ok:
+        if r.status_code == 404:
+            # this is not a civitai model
+            print("Civitai does not have this model")
+            return {}
+        else:
+            print("Get error code: " + str(r.status_code))
+            print(r.text)
+            return
+
+    # try to get content
+    content = None
+    try:
+        content = r.json()
+    except Exception as e:
+        print("Parse response json failed")
+        print(str(e))
+        print("response:")
+        print(r.text)
+        return
+    
+    if not content:
+        print("error, content from civitai is None")
+        return
+    
+    return content
+
+def load_info(path):
+    # print("Load model info from file: " + path)
+    model_info = None
+    with open(os.path.realpath(path), 'r') as f:
+        try:
+            model_info = json.load(f)
+        except Exception as e:
+            print("Selected file is not json: " + path)
+            print(e)
+            return
+        
+    return model_info
+
+for root, dirs, files in os.walk(search_folder):
+    print(f"{root} {dirs}")
+    for file in files:
+        file_path = os.path.join(root, file)
+        file_name = os.path.splitext(file)[0].replace(".safetensors", "")
+        file_extension = os.path.splitext(file)[1]
+        if file_extension == search_extensions:
+
+            if not os.path.exists(root+"\\"+file_name+".civitai.info.model"):
+                version_info = load_info(root+"\\"+file_name+".civitai.info")
+                write_info(root+"\\"+file_name+".civitai.info.model", get_model_info_by_id(version_info["modelId"]))
+            else:
+                file_stats = os.stat(root+"\\"+file_name+".civitai.info.model")
+                if file_stats.st_size < 100:
+                    version_info = load_info(root+"\\"+file_name+".civitai.info")
+                    write_info(root+"\\"+file_name+".civitai.info.model", get_model_info_by_id(version_info["modelId"]))
+                else:
+                    model_info = load_info(root+"\\"+file_name+".civitai.info.model")
+                    write_info(root+"\\"+file_name+".civitai.info.model", get_model_info_by_id(model_info["id"]))
