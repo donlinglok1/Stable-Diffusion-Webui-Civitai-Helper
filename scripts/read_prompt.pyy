@@ -4,7 +4,7 @@ import os
 target_directory = "E:\stable-diffusion-output\gallery"
 
 # 選擇您感興趣的特定副檔名（例如 .txt 或 .jpg）
-specific_extensions = {".png"}  # 替換為您想要的副檔名
+specific_extensions = {".png"}  
 
 import base64
 import cv2

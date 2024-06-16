@@ -1,20 +1,21 @@
 import os
 import json
 
-search_folder = "E:\\Lora"
+search_folders = ["D:\\Lora","E:\\Lora"]
 search_extensions = ".safetensors"
 
-for root, dirs, files in os.walk(search_folder):
-    print(f"{root} {dirs}")
-    for file in files:
-        file_name = os.path.splitext(file)[0].replace(search_extensions, "")
-        file_extension = os.path.splitext(file)[1]
-        if file_extension == search_extensions:
-            if not os.path.exists(root+"\\"+file_name+".preview.png"):
-                print(file_name)
-                if os.path.exists(file+".safetensors"):
-                    os.remove(root+"\\"+file_name+".safetensors")
-                if os.path.exists(file+".civitai.info):
-                    os.remove(root+"\\"+file_name+".civitai.info")
-                if os.path.exists(file+".civitai.info.model"):
-                    os.remove(root+"\\"+file_name+".civitai.info.model")
+for search_folder in search_folders:
+    for root, dirs, files in os.walk(search_folder):
+        print(f"{root} {dirs}")
+        for file in files:
+            file_name = os.path.splitext(file)[0].replace(search_extensions, "")
+            file_extension = os.path.splitext(file)[1]
+            if file_extension == search_extensions:
+                if not os.path.exists(root+"\\"+file_name+".preview.png"):
+                    print(file_name)
+                    if os.path.exists(root+"\\"+file_name+".safetensors"):
+                        os.remove(root+"\\"+file_name+".safetensors")
+                    if os.path.exists(root+"\\"+file_name+".civitai.info"):
+                        os.remove(root+"\\"+file_name+".civitai.info")
+                    if os.path.exists(root+"\\"+file_name+".civitai.info.model"):
+                        os.remove(root+"\\"+file_name+".civitai.info.model")

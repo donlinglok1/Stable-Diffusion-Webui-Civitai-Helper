@@ -1248,10 +1248,3 @@ if __name__ == '__main__':
         print("已成功呼叫 lora_folder.pyy")
     except Exception as e:
         print(f"呼叫 lora_folder.py 時發生錯誤：{e}")
-
-    try:
-        # 呼叫 helper.py 檔案
-        subprocess.run(["python", "lora_prompt.pyy"])
-        print("已成功呼叫 lora_prompt.pyy")
-    except Exception as e:
-        print(f"呼叫 lora_prompt.py 時發生錯誤：{e}")

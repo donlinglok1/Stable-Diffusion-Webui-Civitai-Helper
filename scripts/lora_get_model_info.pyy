@@ -11,7 +11,10 @@ url_dict = {
     "hash": "https://civitai.com/api/v1/model-versions/by-hash/"
 }
 
-search_folder = "D:\\Lora"
+search_folders = [
+    "D:\\Lora",
+    "E:\\Lora"
+    ]
 search_extensions = ".safetensors"
 
 def write_info(path, model_info):
@@ -54,6 +57,39 @@ def get_model_info_by_id(id:str) -> dict:
     
     return content
 
+def get_model_info_by_hash(hash:str):
+    if not hash:
+        print("hash is empty")
+        return
+
+    r = requests.get(url_dict["hash"]+hash, headers=def_headers)
+    if not r.ok:
+        if r.status_code == 404:
+            # this is not a civitai model
+            print("Civitai does not have this model")
+            return {}
+        else:
+            print("Get error code: " + str(r.status_code))
+            print(r.text)
+            return
+
+    # try to get content
+    content = None
+    try:
+        content = r.json()
+    except Exception as e:
+        util.printD("Parse response json failed")
+        util.printD(str(e))
+        util.printD("response:")
+        util.printD(r.text)
+        return
+    
+    if not content:
+        util.printD("error, content from civitai is None")
+        return
+    
+    return content
+
 def load_info(path):
     # print("Load model info from file: " + path)
     model_info = None
@@ -67,22 +103,61 @@ def load_info(path):
         
     return model_info
 
-for root, dirs, files in os.walk(search_folder):
-    print(f"{root} {dirs}")
-    for file in files:
-        file_path = os.path.join(root, file)
-        file_name = os.path.splitext(file)[0].replace(".safetensors", "")
-        file_extension = os.path.splitext(file)[1]
-        if file_extension == search_extensions:
+import hashlib
+import io
+def read_chunks(file, size=io.DEFAULT_BUFFER_SIZE):
+    """Yield pieces of data from a file-like object until EOF."""
+    while True:
+        chunk = file.read(size)
+        if not chunk:
+            break
+        yield chunk
 
-            if not os.path.exists(root+"\\"+file_name+".civitai.info.model"):
-                version_info = load_info(root+"\\"+file_name+".civitai.info")
-                write_info(root+"\\"+file_name+".civitai.info.model", get_model_info_by_id(version_info["modelId"]))
-            else:
-                file_stats = os.stat(root+"\\"+file_name+".civitai.info.model")
-                if file_stats.st_size < 100:
-                    version_info = load_info(root+"\\"+file_name+".civitai.info")
-                    write_info(root+"\\"+file_name+".civitai.info.model", get_model_info_by_id(version_info["modelId"]))
+def gen_file_sha256(filname):
+    blocksize=1 << 20
+    h = hashlib.sha256()
+    length = 0
+    with open(os.path.realpath(filname), 'rb') as f:
+        for block in read_chunks(f, size=blocksize):
+            length += len(block)
+            h.update(block)
+
+    hash_value =  h.hexdigest()
+    print("sha256: " + hash_value)
+    print("length: " + str(length))
+    return hash_value
+
+for search_folder in search_folders:
+    for root, dirs, files in os.walk(search_folder):
+        print(f"{root} {dirs}")
+        for file in files:
+            file_path = os.path.join(root, file)
+            file_name = os.path.splitext(file)[0].replace(".safetensors", "")
+            file_extension = os.path.splitext(file)[1]
+            if file_extension == search_extensions:
+                if not os.path.exists(root+"\\"+file_name+".civitai.info.model"):
+                    if os.path.exists(root+"\\"+file_name+".civitai.info"):
+                        version_info = load_info(root+"\\"+file_name+".civitai.info")
+                        write_info(root+"\\"+file_name+".civitai.info.model", get_model_info_by_id(version_info["modelId"]))
+                    else:
+                        hash = gen_file_sha256(root+"\\"+file_name+".safetensors")
+                        write_info(root+"\\"+file_name+".civitai.info", get_model_info_by_hash(hash))
+
+                        version_info = load_info(root+"\\"+file_name+".civitai.info")
+                        write_info(root+"\\"+file_name+".civitai.info.model", get_model_info_by_id(version_info["modelId"]))
                 else:
-                    model_info = load_info(root+"\\"+file_name+".civitai.info.model")
-                    write_info(root+"\\"+file_name+".civitai.info.model", get_model_info_by_id(model_info["id"]))
+                    with open(root+"\\"+file_name+".civitai.info.model", "r", encoding="utf-8") as file:
+                        file_content = file.read()
+                        
+                    if file_content == "null":
+                        hash = gen_file_sha256(root+"\\"+file_name+".safetensors")
+                        write_info(root+"\\"+file_name+".civitai.info", get_model_info_by_hash(hash))
+                            
+                        version_info = load_info(root+"\\"+file_name+".civitai.info")
+                        if len(version_info) == 0:
+                            if "modelId" in version_info:
+                                write_info(root+"\\"+file_name+".civitai.info.model", get_model_info_by_id(version_info["modelId"]))
+                    else:
+                        if not os.path.exists(root+"\\"+file_name+".civitai.info"):
+                            hash = gen_file_sha256(root+"\\"+file_name+".safetensors")
+                            write_info(root+"\\"+file_name+".civitai.info", get_model_info_by_hash(hash))
