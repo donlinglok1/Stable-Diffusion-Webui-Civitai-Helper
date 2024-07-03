@@ -2,7 +2,7 @@ import os
 import base64
 import json
 
-search_folder = "E:\\Lora"
+source_folder = "E:\\Lora"
 search_extensions =".safetensors"
 
 def image_to_base64(image_path):
@@ -81,7 +81,7 @@ def interrogate_api(file_path):
 
     return f"<lora:{file_name}:0.8> {jj['caption']}"
 
-for root, dirs, files in os.walk(search_folder):
+for root, dirs, files in os.walk(source_folder):
     if(dirs == []):
         prompt_array = []
         name_array = []
@@ -89,43 +89,40 @@ for root, dirs, files in os.walk(search_folder):
             file_name = os.path.splitext(file)[0].replace(search_extensions, "")
             file_extension = os.path.splitext(file)[1]
             if file_extension == search_extensions:
-                try:
-                    with open(root+"\\"+file_name+".civitai.info", "r", encoding="utf-8") as file:
-                        file_content = file.read()
-                        data = json.loads(file_content)
-                        if "images" in data:
-                            for image in data["images"][:1]:
-                                image_prompt = image["meta"]["prompt"]+","
-                                prompt = image_prompt.replace("\n", "")
-                                if prompt == "" or prompt.count(',') < 4:
-                                    prompt = f"1girl, black background, breasts, looking at viewer, medium breasts, simple background, solo, upper body,"
-                                    
-                                if "__" not in prompt:
-                                    prompt_array.append(f"{prompt}")
-                                    
-                        if "trainedWords" in data:
-                            prompt = ""
-                            for trainedWord in data["trainedWords"]:
-                                prompt += f"{trainedWord},"
-                            
-                            if "__" not in prompt:
-                                name_array.append(f"<lora:{file_name}:0.8> {prompt}")
+                with open(root+"\\"+file_name+".civitai.info", "r", encoding="utf-8") as file:
+                    file_content = file.read()
+                    data = json.loads(file_content)
+                    if "images" in data:
+                        for image in data["images"][:1]:
+                            if "meta" in image:
+                                if image["meta"] and "prompt" in image["meta"]:
+                                    image_prompt = image["meta"]["prompt"]+","
+                                    prompt = image_prompt.replace("\n", "")
+
+                            if prompt == "" or prompt.count(',') < 4:
+                                prompt = f"1girl, black background, breasts, looking at viewer, medium breasts, simple background, solo, upper body,"
                                 
-                        #r1 = read_safetensors(root+"\\"+file_name+".civitai.info")               
-                        #if "__" not in r1:
-                        #    prompt_array.append(f"{r1}")
-                        #    name_array.append(f"<lora:{file_name}:0.8> {r1}")
+                            if "__" not in prompt:
+                                prompt_array.append(f"{prompt}")
+                                
+                    if "trainedWords" in data:
+                        prompt = ""
+                        for trainedWord in data["trainedWords"]:
+                            prompt += f"{trainedWord},"
+                        
+                        if "__" not in prompt:
+                            name_array.append(f"<lora:{file_name}:0.8> {prompt}")
+                            
+                    #r1 = read_safetensors(root+"\\"+file_name+".civitai.info")               
+                    #if "__" not in r1:
+                    #    prompt_array.append(f"{r1}")
+                    #    name_array.append(f"<lora:{file_name}:0.8> {r1}")
 
-                        #r2 = interrogate_api(root+"\\"+file_name+".civitai.info")          
-                        #if "__" not in r2:
-                        #    prompt_array.append(f"{r2}")
-                        #    name_array.append(f"<lora:{file_name}:0.8> {r2}")
+                    #r2 = interrogate_api(root+"\\"+file_name+".civitai.info")          
+                    #if "__" not in r2:
+                    #    prompt_array.append(f"{r2}")
+                    #    name_array.append(f"<lora:{file_name}:0.8> {r2}")
 
-                except FileNotFoundError:
-                    print(root+"\\"+file_name+".civitai.info")
-                except Exception as e:
-                    print(f"讀取檔案時發生錯誤：{e}")
-                    
         out_prompt_file = root.replace("E:\\Lora", "")
         
         lora_name_file_path = "G:\git\stable-diffusion-webui\wildcards"+out_prompt_file+"_name.txt"

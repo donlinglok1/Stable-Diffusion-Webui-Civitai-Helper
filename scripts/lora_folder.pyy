@@ -63,7 +63,7 @@ Style_tags = [
     ]
 
 source_folders = [
-    #"D:\\Lora", 
+    "D:\\Lora", 
     "E:\\Lora"
 ]
 search_extensions = ".safetensors"

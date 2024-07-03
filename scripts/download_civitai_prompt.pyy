@@ -1,0 +1,60 @@
+from selenium import webdriver
+import time
+from bs4 import BeautifulSoup
+import requests
+import re
+
+browser = webdriver.Firefox()
+
+#for item in soup.findAll('div', attrs={'class': 'name'}):
+#    print(item.text)
+
+def download_html(url):
+    try:
+        sada = browser.get(url)
+        time.sleep(3)
+        source = browser.page_source
+        return source
+    except requests.RequestException as e:
+        print(f"無法下載 HTML 內容：{e}")
+        return None
+
+def search_content(html_content, pattern):
+    matches = re.findall(pattern, html_content)
+    return matches
+
+# 使用範例
+urls_to_download = [
+]
+
+for url in urls_to_download:
+    html_content = download_html(url)
+    soup = BeautifulSoup(html_content, 'html.parser')
+    #print(html_content)
+
+    if html_content:
+        search_pattern = '<div class="mantine-Text-root text-sm mantine-.*">.*</div><div class="flex justify-start">'
+        found_titles = search_content(html_content, search_pattern)
+        search_model_pattern = 'Pony Diffusion V6 XL'
+        found_model = search_content(html_content, search_model_pattern)
+        if len(found_titles) > 0:
+            arr = found_titles[0].split('<div class="flex justify-start">')
+            
+            result = re.sub('<div class="mantine-Text-root text-sm mantine-.*">','',re.sub('</div>','',arr[0]))
+            print(url)
+            print(result)
+            print(found_model)
+
+            if len(found_model)>0 and found_model[0]==search_model_pattern:
+                lora_prompt_file_path = "G:\git\stable-diffusion-webui\wildcards\pony\civitai.txt"
+            else:
+                lora_prompt_file_path = "G:\git\stable-diffusion-webui\wildcards\civitai.txt"
+
+            try:
+                with open(lora_prompt_file_path, "a", encoding="utf-8") as file:
+                    file.write(result + "\n")
+            except Exception as e:
+                print(f"寫入檔案時發生錯誤：{e}")
+
+browser.close()
+browser.quit()

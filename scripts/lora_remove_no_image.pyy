@@ -1,11 +1,11 @@
 import os
 import json
 
-search_folders = ["D:\\Lora","E:\\Lora"]
+source_folders = ["D:\\Lora","E:\\Lora"]
 search_extensions = ".safetensors"
 
-for search_folder in search_folders:
-    for root, dirs, files in os.walk(search_folder):
+for source_folder in source_folders:
+    for root, dirs, files in os.walk(source_folder):
         print(f"{root} {dirs}")
         for file in files:
             file_name = os.path.splitext(file)[0].replace(search_extensions, "")

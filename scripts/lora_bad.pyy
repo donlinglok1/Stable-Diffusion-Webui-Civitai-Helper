@@ -3,8 +3,8 @@ import re
 from PIL import Image
 
 bad_image_folder = "E:\\stable-diffusion-output\\Bad\\Bad mix char sex"
-lora_folder = "E:\Lora\\pony"
-ourput_lora_folder = "E:\\stable-diffusion-output\\Bad_Lora"
+lora_folder = "E:\\Lora\\pony"
+output_lora_folder = "E:\\stable-diffusion-output\\Bad_Lora"
 search_extensions = ".png"
 search_extensions2 = ".safetensors"
 
@@ -60,7 +60,7 @@ for root, dirs, files in os.walk(lora_folder):
             file_extension = os.path.splitext(file)[1]
             if file_extension == search_extensions2:
                 if file_name in remove_lora_list:       
-                    new = f"{ourput_lora_folder}\\{file_name}"
+                    new = f"{output_lora_folder}\\{file_name}"
                     print(new)
 
                     if not os.path.exists(os.path.dirname(new)):
@@ -70,7 +70,7 @@ for root, dirs, files in os.walk(lora_folder):
                             if exc.errno != errno.EEXIST:
                                 raise
 
-                    move(f"{root+"\\"+file_name}.civitai.info",f"{new}.civitai.info")
-                    move(f"{root+"\\"+file_name}.civitai.info.model",f"{new}.civitai.info.model")
-                    move(f"{root+"\\"+file_name}.preview.png",f"{new}.preview.png")
-                    move(f"{root+"\\"+file_name}.safetensors",f"{new}.safetensors")
+                    move(f"{root}\\{file_name}.civitai.info",f"{new}.civitai.info")
+                    move(f"{root}\\{file_name}.civitai.info.model",f"{new}.civitai.info.model")
+                    move(f"{root}\\{file_name}.preview.png",f"{new}.preview.png")
+                    move(f"{root}\\{file_name}.safetensors",f"{new}.safetensors")
