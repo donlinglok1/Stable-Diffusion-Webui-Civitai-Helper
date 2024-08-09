@@ -1,23 +1,44 @@
 from selenium import webdriver
 import time
 from bs4 import BeautifulSoup
+from selenium.webdriver.common.by import By
 import requests
 import re
 
-browser = webdriver.Firefox()
+driver = webdriver.Firefox()
 
 #for item in soup.findAll('div', attrs={'class': 'name'}):
 #    print(item.text)
 
 def download_html(url):
     try:
-        sada = browser.get(url)
-        time.sleep(3)
-        source = browser.page_source
+        sada = driver.get(url)
+        time.sleep(1)
+        source = driver.page_source
         return source
     except requests.RequestException as e:
         print(f"無法下載 HTML 內容：{e}")
-        return None
+        return download_html(url)
+
+import unicodedata
+import string
+
+valid_filename_chars = "-_.,() %s%s" % (string.ascii_letters, string.digits)
+char_limit = 230
+
+def clean_filename(filename, whitelist=valid_filename_chars, replace=' '):
+    # replace spaces
+    #for r in replace:
+    #    filename = filename.replace(r,'')
+    
+    # keep only valid ascii chars
+    cleaned_filename = unicodedata.normalize('NFKD', filename).encode('ASCII', 'ignore').decode()
+    
+    # keep only whitelisted chars
+    cleaned_filename = ''.join(c for c in cleaned_filename if c in whitelist)
+    if len(cleaned_filename)>char_limit:
+        print("Warning, filename truncated because it was over {}. Filenames may no longer be unique".format(char_limit))
+    return cleaned_filename[:char_limit]    
 
 def search_content(html_content, pattern):
     matches = re.findall(pattern, html_content)
@@ -27,34 +48,68 @@ def search_content(html_content, pattern):
 urls_to_download = [
 ]
 
+modelListHTML_file_path = "G:\git\stable-diffusion-webui\extensions\Stable-Diffusion-Webui-Civitai-Helper\scripts\civitai_image_model.txt"
+modelListHTML = "";
 for url in urls_to_download:
     html_content = download_html(url)
     soup = BeautifulSoup(html_content, 'html.parser')
     #print(html_content)
 
-    if html_content:
-        search_pattern = '<div class="mantine-Text-root text-sm mantine-.*">.*</div><div class="flex justify-start">'
-        found_titles = search_content(html_content, search_pattern)
-        search_model_pattern = 'Pony Diffusion V6 XL'
-        found_model = search_content(html_content, search_model_pattern)
-        if len(found_titles) > 0:
-            arr = found_titles[0].split('<div class="flex justify-start">')
-            
-            result = re.sub('<div class="mantine-Text-root text-sm mantine-.*">','',re.sub('</div>','',arr[0]))
-            print(url)
-            print(result)
-            print(found_model)
+    try:
+        if html_content:
+            found_titles = search_content(html_content, '<div class="mantine-Text-root text-sm mantine-.*">.*</div><div class="flex justify-start">')
+            if len(found_titles) > 0:
+                arr = found_titles[0].split('<div class="flex justify-start">')
+                
+                result = re.sub('<div class="mantine-Text-root text-sm mantine-.*">','',re.sub('</div>','',arr[0]))
+                #print(url)
+                print(result)
 
-            if len(found_model)>0 and found_model[0]==search_model_pattern:
-                lora_prompt_file_path = "G:\git\stable-diffusion-webui\wildcards\pony\civitai.txt"
-            else:
-                lora_prompt_file_path = "G:\git\stable-diffusion-webui\wildcards\civitai.txt"
+                if "score_" in result:
+                    lora_prompt_file_path = "G:\git\stable-diffusion-webui\wildcards\pony\civitai.txt"
+                else:
+                    lora_prompt_file_path = "G:\git\stable-diffusion-webui\wildcards\civitai.txt"
 
-            try:
-                with open(lora_prompt_file_path, "a", encoding="utf-8") as file:
-                    file.write(result + "\n")
-            except Exception as e:
-                print(f"寫入檔案時發生錯誤：{e}")
+                found_show_button = search_content(html_content, 'mantine-Button-inner"><span class="mantine-..... mantine-Button-label">Show</span>')
+                if len(found_show_button) > 0:
+                    showBtn = driver.find_element(By.XPATH,"/html/body/div[1]/div/div/main/div/div[1]/div[2]/div/div/div/div/div[1]/div/button")
+                    showBtn.click()
+                    time.sleep(1)
+                    filename = clean_filename(result)
+                    with open('G:\\git\\stable-diffusion-webui\\wildcards\\civitai\\'+filename+'.png', 'wb') as file:
+                        file.write(driver.find_element(By.XPATH,'/html/body/div[1]/div/div/main/div/div[1]/div[2]/div/div/div/div/div/img').screenshot_as_png)
+                
+                found_more_model = search_content(html_content, 'class="mantine-Text-root cursor-pointer text-sm mantine-.......">Show ')
+                if len(found_more_model) > 0:
+                    showMoreBtn = driver.find_element(By.XPATH,"/html/body/div[1]/div/div/main/div/div[2]/div[2]/div[1]/div/div/div[4]/div[2]/div[2]/div")
+                    showMoreBtn.click()
+                    time.sleep(1)
+                    modelList = driver.find_element(By.XPATH,"/html/body/div[1]/div/div/main/div/div[2]/div[2]/div[1]/div/div/div[4]/div[2]/ul")
+                    modelListHTML = modelListHTML + modelList.get_attribute('innerHTML')
 
-browser.close()
-browser.quit()
+                try:
+                    with open(lora_prompt_file_path, "a", encoding="utf-8") as file:
+                        file.write(result + "\n")
+                except Exception as e:
+                    print(f"寫入檔案時發生錯誤：{e}")
+    except Exception as e:
+        print(f"HTML error {e}")
+
+try:
+    with open(modelListHTML_file_path, "a", encoding="utf-8") as file:
+        file.write(modelListHTML + "\n")
+except Exception as e:
+    print(f"寫入檔案時發生錯誤：{e}")
+
+with open("G:\git\stable-diffusion-webui\wildcards\pony\civitai.txt", "r") as f:
+    lines = dict.fromkeys(f.readlines())
+with open("G:\git\stable-diffusion-webui\wildcards\pony\civitai.txt", "w") as f:
+    f.writelines(lines)
+
+with open("G:\git\stable-diffusion-webui\wildcards\civitai.txt", "r") as f:
+    lines = dict.fromkeys(f.readlines())
+with open("G:\git\stable-diffusion-webui\wildcards\civitai.txt", "w") as f:
+    f.writelines(lines)
+
+driver.close()
+driver.quit()

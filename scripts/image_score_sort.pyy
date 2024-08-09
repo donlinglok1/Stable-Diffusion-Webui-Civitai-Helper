@@ -1,0 +1,109 @@
+# import
+from transformers import AutoProcessor, AutoModel
+from PIL import Image
+import torch
+
+# load model
+device = "cuda"
+processor_name_or_path = "laion/CLIP-ViT-H-14-laion2B-s32B-b79K"
+model_pretrained_name_or_path = "yuvalkirstain/PickScore_v1"
+processor = AutoProcessor.from_pretrained(processor_name_or_path)
+model = AutoModel.from_pretrained(model_pretrained_name_or_path).eval().to(device)
+
+import shutil
+
+def copy(source_path,target_path):
+    try:
+        # 移動檔案
+        shutil.copyfile(source_path, target_path)  # 或者使用 os.replace() 來覆蓋目標位置的檔案
+    except FileNotFoundError:
+        print(f"找不到原始檔案：{source_path}")
+    except Exception as e:
+        print(f"移動檔案時發生錯誤：{e}")
+
+def calc_probs(prompt, images):
+    # preprocess
+    image_inputs = processor(
+        images=images,
+        padding=True,
+        truncation=True,
+        max_length=77,
+        return_tensors="pt",
+    ).to(device)
+    
+    text_inputs = processor(
+        text=prompt,
+        padding=True,
+        truncation=True,
+        max_length=77,
+        return_tensors="pt",
+    ).to(device)
+
+
+    with torch.no_grad():
+        # embed
+        image_embs = model.get_image_features(**image_inputs)
+        image_embs = image_embs / torch.norm(image_embs, dim=-1, keepdim=True)
+    
+        text_embs = model.get_text_features(**text_inputs)
+        text_embs = text_embs / torch.norm(text_embs, dim=-1, keepdim=True)
+    
+        # score
+        scores = model.logit_scale.exp() * (text_embs @ image_embs.T)[0]
+        
+        # get probabilities if you have multiple images to choose from
+        probs = torch.softmax(scores, dim=-1)
+    
+    return probs.cpu().tolist()
+
+import os
+
+source_folder = "E:\\stable-diffusion-output\\Read\\2024"
+search_extensions = ".png" 
+
+for root, dirs, files in os.walk(source_folder):
+    try:
+        if dirs == [] and "_new" not in root :
+            imageFileList = []
+            for file in files:
+                file_name = os.path.splitext(file)[0].replace(search_extensions, "")
+                file_extension = os.path.splitext(file)[1]
+                if file_extension == search_extensions:
+                    imageFileList.append(Image.open(root+"\\"+file_name+".png"))
+
+            #prompt = "score_9, score_8_up, score_9_up, masterpiece, high quality, highly detailed"
+            prompt = "masterpiece, high quality, highly detailed"
+            pick_score_result = calc_probs(prompt, imageFileList)
+            print(pick_score_result)
+
+            if len(pick_score_result) == len(imageFileList):
+                # Traverse through all array elements
+                for i in range(len(pick_score_result)-1):
+                    # Find the minimum element in remaining 
+                    # unsorted array
+                    min_idx = i
+                    for j in range(i+1, len(pick_score_result)):
+                        if pick_score_result[min_idx] > pick_score_result[j]:
+                            min_idx = j
+                            
+                    # Swap the found minimum element with 
+                    # the first element        
+                    pick_score_result[i], pick_score_result[min_idx] = pick_score_result[min_idx], pick_score_result[i]
+                    imageFileList[i], imageFileList[min_idx] = imageFileList[min_idx], imageFileList[i]
+
+            i = 0;
+            for resultImage in imageFileList:
+                i = i+1;
+                new = root+"_new"+'\\'+f"{i}"+'_'+resultImage.filename.replace(root+'\\',"")
+                print(new)
+
+                if not os.path.exists(os.path.dirname(new)):
+                    try:
+                        os.makedirs(os.path.dirname(new))
+                    except OSError as exc: # Guard against race condition
+                        if exc.errno != errno.EEXIST:
+                            raise
+
+                copy(f"{resultImage.filename}",f"{new}")
+    except Exception as e:
+        print(f"移動檔案時發生錯誤：{e}")

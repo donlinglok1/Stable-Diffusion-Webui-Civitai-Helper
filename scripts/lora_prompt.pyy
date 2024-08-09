@@ -92,6 +92,22 @@ for root, dirs, files in os.walk(source_folder):
                 with open(root+"\\"+file_name+".civitai.info", "r", encoding="utf-8") as file:
                     file_content = file.read()
                     data = json.loads(file_content)
+                    isNameDone = False
+                    if "trainedWords" in data:
+                        prompt = ""
+                        for trainedWord in data["trainedWords"]:
+                            prompt += f"{trainedWord},"
+                        
+                        if "__" not in prompt:
+                            name_array.append(f"<lora:{file_name}:0.8> {prompt}")
+                            isNameDone = True
+
+                    if isNameDone == False:
+                        r1 = read_safetensors(root+"\\"+file_name+".civitai.info")               
+                        if "__" not in r1:
+                            name_array.append(f"<lora:{file_name}:0.8> {r1}")
+
+                    isDone = False
                     if "images" in data:
                         for image in data["images"][:1]:
                             if "meta" in image:
@@ -104,19 +120,12 @@ for root, dirs, files in os.walk(source_folder):
                                 
                             if "__" not in prompt:
                                 prompt_array.append(f"{prompt}")
+                                isDone = True
                                 
-                    if "trainedWords" in data:
-                        prompt = ""
-                        for trainedWord in data["trainedWords"]:
-                            prompt += f"{trainedWord},"
-                        
-                        if "__" not in prompt:
-                            name_array.append(f"<lora:{file_name}:0.8> {prompt}")
-                            
-                    #r1 = read_safetensors(root+"\\"+file_name+".civitai.info")               
-                    #if "__" not in r1:
-                    #    prompt_array.append(f"{r1}")
-                    #    name_array.append(f"<lora:{file_name}:0.8> {r1}")
+                    if isDone == False:
+                        r1 = read_safetensors(root+"\\"+file_name+".civitai.info")               
+                        if "__" not in r1:
+                            prompt_array.append(f"{r1}")
 
                     #r2 = interrogate_api(root+"\\"+file_name+".civitai.info")          
                     #if "__" not in r2:

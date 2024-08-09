@@ -1,18 +1,5 @@
 import os
 import json
-from transformers import pipeline
-model_name = "yuvalkirstain/PickScore_v1"
-classifier = pipeline("zero-shot-image-classification", model = model_name)
-nsfw_labels = [
-            "nipples",
-            "pussy",
-            "penis",
-            "nude",
-            ]
-real_labels = [
-            'photorealistic',
-            'anime',
-            ]
 
 pony_tags = ['Pony']
 xl_tags = ['SDXL 0.9','SDXL 1.0','SDXL 1.0 LCM','SDXL Distilled','SDXL Turbo']
@@ -30,52 +17,163 @@ real_tags = [
     'photography', 
     'photorealism',
     ]
+from transformers import pipeline
+model_name = 'yuvalkirstain/PickScore_v1'
+classifier = pipeline('zero-shot-image-classification', model = model_name)
+ani_or_real_labels = [
+            'photorealistic',
+            'anime',
+            ]
+Sex_tags = [
+    'porn',
+    'nsfw',
+    'hentai',
+    'nipples',
+    'chest',
+    'cameltoe',
+    'nipple',
+    'pee',
+    'pussy',
+    'bukkake',
+    'penis',
+    'nude',
+    'spread',
+    'sex',
+    'ahoge',
+    'deepthroat',
+    'missionary',
+    'fellatio',
+    'holding',
+    'threesome',
+    'heels',
+    'cum',
+    'condom',
+    'ahegao',
+    'standing',
+    'handjob',
+    'position',
+    'finger',
+    'tits',
+    'mouth',
+    'swallow',
+    'suck',
+    'tongue',
+    'choke',
+    'bj',
+    'blow job',
+    'blowjob',
+    'rim',
+    'play',
+    'job',
+    'bdsm',
+    'arm',
+    'lick',
+    'dog',
+    'spitroast',
+    'foot',
+    'ass',
+    'grab',
+    'gag',
+    'hand',
+    'stuck',
+    'tentacles',
+    'anal',
+    'fuck',
+    'fours',
+    'ride',
+    'riding',
+    'sitting',
+    'size difference'
+    ]
+Concept_tags = [
+    'concept',
+    'poses',
+    'push',
+    'pose',
+    'motion',
+    'meme',
+    'kick',
+    'jump',
+    'kiss',
+    'action',
+    'view'
+    ]
+Style_tags = [
+    'style',
+    'art',
+    'artist'
+    ]
+Costume_tags = [
+    'clothes',
+    'leather',
+    'sweater',
+    'nun',
+    'shorts',
+    'jacket',
+    'boots',
+    'bondage',
+    'clothing',
+    'gloves',
+    'cosplay',
+    'linger',
+    'top',
+    'costume',
+    'lace',
+    'panties',
+    'skirt',
+    'dress',
+    'outfit',
+    'see-through',
+    'uniform',
+    'rabbitsuit',
+    'pantyhose',
+    'bunny_girl',
+    '服',
+    '裙',
+    '衣',
+    'armor',
+    'swimsuit',
+    'underwear',
+    'bikini',
+    'gym uniform',
+    'china dress',
+    'rabbit ears',
+    'suit',
+    'pants',
+    'shirt',
+    'ruanyi'
+    ]
 Character_tags = [
     'character', 
     'celebrity', 
     'characters', 
     'video game',
     'blue archive',
-    'female',
     'woman',
-    ]
-Concept_tags = [
-    'concept',
-    'poses',
-    'action'
-    ]
-Costume_tags = [
-    'clothing',
-    'dress'
-    ]
-Sex_tags = [
-    'porn',
-    'nsfw',
-    'hentai',
-    "nipples",
-    "pussy",
-    "penis",
-    "nude",
-    "deepthroat"
-    ]
-Style_tags = [
-    'style'
+    'selfie',
+    'portrait',
+    'game'
     ]
 
 source_folders = [
-    "D:\\Lora", 
-    "E:\\Lora"
+    'D:\\Lora', 
+    'E:\\Lora'
 ]
-search_extensions = ".safetensors"
+search_extensions = '.safetensors'
+
+import sys
+
+def PPRINT(msg = None):
+    print(f"Line No: {sys._getframe().f_back.f_lineno}: {msg if msg is not None else ''}")
 
 def move(source_path,target_path):
     try:
         # 移動檔案
         os.replace(source_path, target_path)  # 或者使用 os.replace() 來覆蓋目標位置的檔案
     except FileNotFoundError:
-        print(f"找不到原始檔案：{source_path}")
+        PPRINT(f"找不到原始檔案：{source_path}")
     except Exception as e:
-        print(f"移動檔案時發生錯誤：{e}")
+        PPRINT(f"移動檔案時發生錯誤：{e}")
 
 def process_file(file,source_folder):
     file_name = os.path.splitext(file)[0].replace(search_extensions, "")
@@ -89,149 +187,221 @@ def process_file(file,source_folder):
             with open(info_path, "r", encoding="utf-8") as file:
                 file_content = file.read()
 
-            #print(file_content)
+            #PRINT(file_content)
             data = json.loads(file_content)
             baseModelValue = ""
             if "modelVersions" in data and "baseModel" in data["modelVersions"][0]:
                 baseModelValue = data["modelVersions"][0]["baseModel"]
             elif "baseModel" in data:
                 baseModelValue = data["baseModel"]
-            print(baseModelValue)
-    
-            keywordValue = []
-            lora_cat = ""
-            if "tags" in data:
-                keywordValue = data["tags"]
-                isPony = False
-                if baseModelValue in pony_tags:
-                    lora_cat += "\\pony"
-                    isPony = True
-                elif baseModelValue in xl_tags:
-                    lora_cat += "\\xl"
-
-            elif "trainedWords" in data:
-                keywordValue = data["trainedWords"]
-                isPony = False
-                if baseModelValue in pony_tags:
-                    lora_cat += "\\pony"
-                    isPony = True
-                elif baseModelValue in xl_tags:
-                    lora_cat += "\\xl"
-
-            isAniOrRealDone = False
-            for tag in keywordValue:
-                if tag.lower() in real_tags and isAniOrRealDone == False:
-                    lora_cat += "\\real"
-                    isAniOrRealDone = True
-                elif tag.lower() in ani_tags and isAniOrRealDone == False:
-                    lora_cat += "\\ani"
-                    isAniOrRealDone = True
             
-            if isAniOrRealDone == False:
-                print(keywordValue)
-                isMan = "\\man"
-                try:
-                    score_json = classifier(f"{root}\\{file_name}.preview.png", candidate_labels = real_labels)
-                    print(score_json)
-                    if score_json[0]['label'] == "anime":
-                        isMan = "\\ani"
-                    if score_json[0]['label'] == "photorealistic":
-                        isMan = "\\real"
-                except Exception as e:
-                    print(f"{e}")
-                lora_cat += isMan
-                isAniOrRealDone = True
+            if baseModelValue != "":
+                #PPRINT(baseModelValue)
+        
+                keywordValue = []
+                lora_cat = ""
+                if "tags" in data:
+                    keywordValue = data["tags"]
+                    isPony = False
+                    if baseModelValue in pony_tags:
+                        lora_cat += "\\pony"
+                        #PPRINT(lora_cat)
+                        isPony = True
+                    elif baseModelValue in xl_tags:
+                        lora_cat += "\\xl"
+                        #PPRINT(lora_cat)
+                elif "trainedWords" in data:
+                    keywordValue = data["trainedWords"]
+                    isPony = False
+                    if baseModelValue in pony_tags:
+                        lora_cat += "\\pony"
+                        #PPRINT(lora_cat)
+                        isPony = True
+                    elif baseModelValue in xl_tags:
+                        lora_cat += "\\xl"
+                        #PPRINT(lora_cat)
 
-            isTypeDone = False
-            for tag in keywordValue:
-                if tag.lower() in Character_tags and isTypeDone == False:
-                    lora_cat += "\\Character"
-                    isTypeDone = True
-                if tag.lower() in Concept_tags and isTypeDone == False:
-                    lora_cat += "\\Concept"
-                    isTypeDone = True
-                if tag.lower() in Costume_tags and isTypeDone == False:
-                    lora_cat += "\\Costume"
-                    isTypeDone = True
-                if tag.lower() in Sex_tags and isTypeDone == False:
-                    lora_cat += "\\Sex"
-                    isTypeDone = True
-                if tag.lower() in Style_tags and isTypeDone == False:
-                    lora_cat += "\\Style"
-                    isTypeDone = True
+                isAniOrRealDone = False
+                for keyword in keywordValue:
+                    if keyword.lower() in real_tags and isAniOrRealDone == False:
+                        lora_cat += "\\real"
+                        #PPRINT(lora_cat)
+                        isAniOrRealDone = True
+                    elif keyword.lower() in ani_tags and isAniOrRealDone == False and "\\pony" not in lora_cat:
+                        lora_cat += "\\ani"
+                        #PPRINT(lora_cat)
+                        isAniOrRealDone = True
+                
+                if isAniOrRealDone == False:
+                    PPRINT(keywordValue)
+                    isMan = "\\man"
+                    try:
+                        score_json = classifier(f"{root}\\{file_name}.preview.png", candidate_labels = ani_or_real_labels)
+                        #PPRINT(score_json[0])
+                        if score_json[0]['label'] == "anime" and "\\pony" not in lora_cat :
+                            isMan = "\\ani"
+                            #PPRINT(isMan)
+                        if score_json[0]['label'] == "photorealistic":
+                            isMan = "\\real"
+                            #PPRINT(isMan)
+                    except Exception as e:
+                        PPRINT(f"{e}")
+                    lora_cat += isMan
+                    #PPRINT(lora_cat)
+                    isAniOrRealDone = True
 
-            for tag in Character_tags:
-                if len(keywordValue) == 1 and tag.lower() in keywordValue[0] and isTypeDone == False:
-                    lora_cat += "\\Character"
-                    isTypeDone = True
+                isTypeDone = False
+                if len(keywordValue) == 0:
+                    lora_cat += "\\no_keyword"
+                    #PPRINT(lora_cat)
+                else:
+                    for keyword in keywordValue:
+                        if keyword.lower() in Style_tags and isTypeDone == False:
+                            lora_cat += "\\Style"
+                            #PPRINT(lora_cat)
+                            isTypeDone = True
+                        if keyword.lower() in Sex_tags and isTypeDone == False:
+                            lora_cat += "\\Sex"
+                            #PPRINT(lora_cat)
+                            isTypeDone = True
+                        if keyword.lower() in Concept_tags and isTypeDone == False:
+                            lora_cat += "\\Concept"
+                            #PPRINT(lora_cat)
+                            isTypeDone = True
+                        if keyword.lower() in Costume_tags and isTypeDone == False:
+                            lora_cat += "\\Costume"
+                            #PPRINT(lora_cat)
+                            isTypeDone = True
+                        if keyword.lower() in Character_tags and isTypeDone == False:
+                            lora_cat += "\\Character"
+                            #PPRINT(lora_cat)
+                            isTypeDone = True
 
-                if tag.lower() in file_name.lower()and isTypeDone == False:
-                    lora_cat += "\\Character"
-                    isTypeDone = True
+                        ##
+                        for tag in Sex_tags:
+                            if tag.lower() in keyword.lower() and isTypeDone == False:
+                                lora_cat += "\\Sex"
+                                #PPRINT(lora_cat)
+                                isTypeDone = True
+
+                        for tag in Concept_tags:
+                            if tag.lower() in keyword.lower() and isTypeDone == False:
+                                lora_cat += "\\Concept"
+                                #PPRINT(lora_cat)
+                                isTypeDone = True
+                                
+                        for tag in Style_tags:
+                            if tag.lower() in keyword.lower() and isTypeDone == False:
+                                lora_cat += "\\Style"
+                                #PPRINT(lora_cat)
+                                isTypeDone = True
+                        
+                        for tag in Costume_tags:
+                            if tag.lower() in keyword.lower() and isTypeDone == False:
+                                lora_cat += "\\Costume"
+                                #PPRINT(lora_cat)
+                                isTypeDone = True
+                                
+                        for tag in Character_tags:
+                            if tag.lower() in keyword.lower() and isTypeDone == False:
+                                lora_cat += "\\Character"
+                                #PPRINT(lora_cat)
+                                isTypeDone = True
                     
-            for tag in Concept_tags:
-                if len(keywordValue) == 1 and tag.lower() in keywordValue[0] and isTypeDone == False:
-                    lora_cat += "\\Concept"
-                    isTypeDone = True
+                for tag in Style_tags:
+                    if tag.lower() in file_name.lower() and isTypeDone == False:
+                        lora_cat += "\\Style"
+                        #PPRINT(lora_cat)
+                        isTypeDone = True
+                
+                for tag in Sex_tags:
+                    if tag.lower() in file_name.lower() and isTypeDone == False:
+                        lora_cat += "\\Sex"
+                        #PPRINT(lora_cat)
+                        isTypeDone = True
 
-                if tag.lower() in file_name.lower()and isTypeDone == False:
-                    lora_cat += "\\Concept"
-                    isTypeDone = True
-                    
-            for tag in Costume_tags:
-                if len(keywordValue) == 1 and tag.lower() in Costume_tags and isTypeDone == False:
-                    lora_cat += "\\Costume"
-                    isTypeDone = True
-                if tag.lower() in file_name.lower() and isTypeDone == False:
-                    lora_cat += "\\Costume"
-                    isTypeDone = True
-                    
-            for tag in Sex_tags:
-                if len(keywordValue) == 1 and tag.lower() in Sex_tags and isTypeDone == False:
-                    lora_cat += "\\Sex"
-                    isTypeDone = True
+                for tag in Concept_tags:
+                    if tag.lower() in file_name.lower()and isTypeDone == False:
+                        lora_cat += "\\Concept"
+                        #PPRINT(lora_cat)
+                        isTypeDone = True
 
-                if tag.lower() in file_name.lower() and isTypeDone == False:
-                    lora_cat += "\\Sex"
-                    isTypeDone = True
+                for tag in Costume_tags:
+                    if tag.lower() in file_name.lower() and isTypeDone == False:
+                        lora_cat += "\\Costume"
+                        #PPRINT(lora_cat)
+                        isTypeDone = True
+                        
+                for tag in Character_tags:
+                    if tag.lower() in file_name.lower() and isTypeDone == False:
+                        lora_cat += "\\Character"
+                        #PPRINT(lora_cat)
+                        isTypeDone = True
 
-            for tag in Style_tags:
-                if len(keywordValue) == 1 and tag.lower() in Style_tags and isTypeDone == False:
-                    lora_cat += "\\Style"
-                    isTypeDone = True
+                if isTypeDone == False:
+                    try:
+                        score_json = classifier(f"{root}\\{file_name}.preview.png", candidate_labels = Sex_tags)
+                        if score_json[0]['score'] > 0.5:
+                            #PPRINT(score_json[0])
+                            lora_cat += "\\Sex"
+                            #PPRINT(lora_cat)
+                            isTypeDone = True
+                    except Exception as e:
+                        PPRINT(f"{e}")
 
-                if tag.lower() in file_name.lower() and isTypeDone == False:
-                    lora_cat += "\\Style"
-                    isTypeDone = True
-            
-            if "nsfw" in data and data["nsfw"] == True:
-                lora_cat += "\\nsfw"
-            else:
-                try:
-                    score_json = classifier(f"{root}\\{file_name}.preview.png", candidate_labels = nsfw_labels)
-                    if score_json[0]['score'] > 0.5:
-                        print(score_json[0])
-                        lora_cat += "\\nsfw"
-                except Exception as e:
-                    print(f"{e}")
+                if isTypeDone == False:
+                    try:
+                        score_json = classifier(f"{root}\\{file_name}.preview.png", candidate_labels = Costume_tags)
+                        if score_json[0]['score'] > 0.5:
+                            #PPRINT(score_json[0])
+                            lora_cat += "\\Costume"
+                            #PPRINT(lora_cat)
+                            isTypeDone = True
+                    except Exception as e:
+                        PPRINT(f"{e}")
 
-            new = f"{source_folder}{lora_cat}\\{file_name}"
-            print(new)
+                if isTypeDone == False:
+                    try:
+                        score_json = classifier(f"{root}\\{file_name}.preview.png", candidate_labels = Character_tags)
+                        if score_json[0]['score'] > 0.5:
+                            #PPRINT(score_json[0])
+                            lora_cat += "\\Character"
+                            #PPRINT(lora_cat)
+                            isTypeDone = True
+                    except Exception as e:
+                        PPRINT(f"{e}")
 
-            if not os.path.exists(os.path.dirname(new)):
-                try:
-                    os.makedirs(os.path.dirname(new))
-                except OSError as exc: # Guard against race condition
-                    if exc.errno != errno.EEXIST:
-                        raise
+                if "nsfw" in data and data["nsfw"] == True:
+                    lora_cat += "\\nsfw"
+                    #PPRINT(lora_cat)
+                else:
+                    try:
+                        score_json = classifier(f"{root}\\{file_name}.preview.png", candidate_labels = Sex_tags)
+                        if score_json[0]['score'] > 0.5:
+                            #PPRINT(score_json[0])
+                            lora_cat += "\\nsfw"
+                            #PPRINT(lora_cat)
+                    except Exception as e:
+                        PPRINT(f"{e}")
 
-            if f"{root}\\{file_name}.safetensors" != f"{new}.safetensors":
-                move(f"{root}\\{file_name}.civitai.info",f"{new}.civitai.info")
-                move(f"{root}\\{file_name}.civitai.info.model",f"{new}.civitai.info.model")
-                move(f"{root}\\{file_name}.preview.png",f"{new}.preview.png")
-                move(f"{root}\\{file_name}.safetensors",f"{new}.safetensors")
+                new = f"{source_folder}{lora_cat}\\{file_name}"
+                if isTypeDone == False:
+                    PPRINT(new)
+
+                if not os.path.exists(os.path.dirname(new)):
+                    try:
+                        os.makedirs(os.path.dirname(new))
+                    except OSError as exc: # Guard against race condition
+                        if exc.errno != errno.EEXIST:
+                            raise
+
+                if f"{root}\\{file_name}.safetensors" != f"{new}.safetensors":
+                    move(f"{root}\\{file_name}.civitai.info",f"{new}.civitai.info")
+                    move(f"{root}\\{file_name}.civitai.info.model",f"{new}.civitai.info.model")
+                    move(f"{root}\\{file_name}.preview.png",f"{new}.preview.png")
+                    move(f"{root}\\{file_name}.safetensors",f"{new}.safetensors")
         except Exception as e:
-            print(f"{e}")
+            PPRINT(f"{e}")
 
 for source_folder in source_folders:
     for root, dirs, files in os.walk(source_folder):

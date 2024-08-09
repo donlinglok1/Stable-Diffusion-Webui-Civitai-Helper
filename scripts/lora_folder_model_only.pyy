@@ -1,0 +1,96 @@
+import os
+import json
+
+pony_tags = ['Pony']
+xl_tags = ['SDXL 0.9','SDXL 1.0','SDXL 1.0 LCM','SDXL Distilled','SDXL Turbo']
+
+source_folders = [
+    'D:\\Lora', 
+    'E:\\Lora'
+]
+search_extensions = '.safetensors'
+
+import sys
+
+def PPRINT(msg = None):
+    print(f"Line No: {sys._getframe().f_back.f_lineno}: {msg if msg is not None else ''}")
+
+def move(source_path,target_path):
+    try:
+        # 移動檔案
+        os.replace(source_path, target_path)  # 或者使用 os.replace() 來覆蓋目標位置的檔案
+    except FileNotFoundError:
+        PPRINT(f"找不到原始檔案：{source_path}")
+    except Exception as e:
+        PPRINT(f"移動檔案時發生錯誤：{e}")
+
+def process_file(file,source_folder):
+    file_name = os.path.splitext(file)[0].replace(search_extensions, "")
+    file_extension = os.path.splitext(file)[1]
+    if file_extension == search_extensions:
+        info_path = root+"\\"+file_name+".civitai.info.model"
+        try:    
+            file_stats = os.stat(root+"\\"+file_name+".civitai.info.model")
+            if len(info_path) != 0:
+                info_path = root+"\\"+file_name+".civitai.info"
+                with open(info_path, "r", encoding="utf-8") as file:
+                    file_content = file.read()
+
+                #PRINT(file_content)
+                data = json.loads(file_content)
+                baseModelValue = ""
+                if "modelVersions" in data and "baseModel" in data["modelVersions"][0]:
+                    baseModelValue = data["modelVersions"][0]["baseModel"]
+                elif "baseModel" in data:
+                    baseModelValue = data["baseModel"]
+                
+                if baseModelValue != "":
+                    #PPRINT(baseModelValue)
+            
+                    keywordValue = []
+                    lora_cat = ""
+                    if "tags" in data:
+                        keywordValue = data["tags"]
+                        isPony = False
+                        if baseModelValue in pony_tags:
+                            lora_cat += "\\pony"
+                            #PPRINT(lora_cat)
+                            isPony = True
+                        elif baseModelValue in xl_tags:
+                            lora_cat += "\\xl"
+                            #PPRINT(lora_cat)
+
+                    elif "trainedWords" in data:
+                        keywordValue = data["trainedWords"]
+                        isPony = False
+                        if baseModelValue in pony_tags:
+                            lora_cat += "\\pony"
+                            #PPRINT(lora_cat)
+                            isPony = True
+                        elif baseModelValue in xl_tags:
+                            lora_cat += "\\xl"
+                            #PPRINT(lora_cat)
+
+                    new = f"{source_folder}{lora_cat}\\{file_name}"
+
+                    if not os.path.exists(os.path.dirname(new)):
+                        try:
+                            os.makedirs(os.path.dirname(new))
+                        except OSError as exc: # Guard against race condition
+                            if exc.errno != errno.EEXIST:
+                                raise
+
+                    if "\\pony" not in new:
+                        print(new)
+                        if f"{root}\\{file_name}.safetensors" != f"{new}.safetensors":
+                            move(f"{root}\\{file_name}.civitai.info",f"{new}.civitai.info")
+                            move(f"{root}\\{file_name}.civitai.info.model",f"{new}.civitai.info.model")
+                            move(f"{root}\\{file_name}.preview.png",f"{new}.preview.png")
+                            move(f"{root}\\{file_name}.safetensors",f"{new}.safetensors")
+        except Exception as e:
+            PPRINT(f"{e}")
+
+for source_folder in source_folders:
+    for root, dirs, files in os.walk(source_folder):
+        for file in files:
+            process_file(file, source_folder)

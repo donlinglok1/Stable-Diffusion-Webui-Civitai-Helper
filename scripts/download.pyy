@@ -1230,14 +1230,90 @@ if __name__ == '__main__':
         match = re.findall(r'href="\/models\/[0-9]*"', civitaiHTML)
         print(match)
 
+        match2 = re.findall(r'href="https:\/\/civitai.com\/api\/download\/models\/[0-9]*"', civitaiHTML)
+        print(match2)
+
     str_list = [
+        "https://civitai.com/models/11161/cutesexyrobutts-style?modelVersionId=379995",
+"https://civitai.com/models/118427/perfect-eyes-xl?modelVersionId=128461",
+"https://civitai.com/models/120723/detailedeyesxl?modelVersionId=145907",
+"https://civitai.com/models/122359/detail-tweaker-xl?modelVersionId=135867",
+"https://civitai.com/models/127906/xpenis?modelVersionId=385510",
+"https://civitai.com/models/147759/remacri?modelVersionId=164821",
+"https://civitai.com/models/151195/pillow-humping?modelVersionId=619176",
+"https://civitai.com/models/153568/real-dream?modelVersionId=665047",
+"https://civitai.com/models/155051/breast-control-sdxl?modelVersionId=173866",
+"https://civitai.com/models/159990/negativedynamics?modelVersionId=179964",
+"https://civitai.com/models/195911/epicphoto?modelVersionId=220262",
+"https://civitai.com/models/212532/all-disney-princess-xl-lora-model-from-ralph-breaks-the-internet?modelVersionId=239420",
+"https://civitai.com/models/212532/all-disney-princess-xl-lora-model-from-ralph-breaks-the-internet?modelVersionId=244808",
+"https://civitai.com/models/214956/cinematic-photography-style-xl?modelVersionId=242179",
+"https://civitai.com/models/236606/marigold-from-fortnite-or-pony-sd15?modelVersionId=625219",
+"https://civitai.com/models/248965/gothic-girl?modelVersionId=461295",
+"https://civitai.com/models/257749/pony-diffusion-v6-xl?modelVersionId=290640",
+"https://civitai.com/models/264290/styles-for-pony-diffusion-v6-xl-not-artists-styles?modelVersionId=330475",
+"https://civitai.com/models/264290/styles-for-pony-diffusion-v6-xl-not-artists-styles?modelVersionId=333587",
+"https://civitai.com/models/264290/styles-for-pony-diffusion-v6-xl-not-artists-styles?modelVersionId=418782",
+"https://civitai.com/models/274845/deep-throat-xl?modelVersionId=309802",
+"https://civitai.com/models/290860/cinematic-warm-light-lighting-style-xl?modelVersionId=592197",
+"https://civitai.com/models/295541/violet-parr-the-incredibles-pdxl-lora?modelVersionId=332073",
+"https://civitai.com/models/300005/incase-style-ponyxl?modelVersionId=378684",
+"https://civitai.com/models/300005/incase-style-ponyxl?modelVersionId=436219",
+"https://civitai.com/models/301988/better-faces-lora?modelVersionId=339112",
+"https://civitai.com/models/305206/thepit-style-ponyxl?modelVersionId=342682",
+"https://civitai.com/models/315602/porn-productivitymulti-concepts?modelVersionId=389589",
+"https://civitai.com/models/315703/gp-somethingweird-style-pony-xl?modelVersionId=354128",
+"https://civitai.com/models/320001/alex-totally-spies-sd-15-and-sdxl-pony?modelVersionId=358822",
+"https://civitai.com/models/328932/detailed-nipples-xl?modelVersionId=368603",
+"https://civitai.com/models/332646/pony-pdxl-negative-embeddings?modelVersionId=482268",
+"https://civitai.com/models/332646/pony-pdxl-negative-embeddings?modelVersionId=509253",
+"https://civitai.com/models/340248/sinfully-stylish-dramatic-lighting?modelVersionId=407532",
+"https://civitai.com/models/341353/expressiveh-hentai-lora-style?modelVersionId=382152",
+"https://civitai.com/models/349436/slime-girl-concept-pony?modelVersionId=390898",
+"https://civitai.com/models/350450/sdxl-lightning-loras?modelVersionId=391999",
+"https://civitai.com/models/352581/vixons-pony-styles?modelVersionId=398847",
+"https://civitai.com/models/352581/vixons-pony-styles?modelVersionId=461821",
+"https://civitai.com/models/352581/vixons-pony-styles?modelVersionId=486749",
+"https://civitai.com/models/353400/igawa-sakura-hentai-taimanin-asagi-xl-15-support-nsfw?modelVersionId=395205",
+"https://civitai.com/models/356150/rumi-usagiyama-rabbit-hero-mirko-my-hero-academia?modelVersionId=398153",
+"https://civitai.com/models/36070/negative-embedding-for-realistic-vision-v20?modelVersionId=42247",
+"https://civitai.com/models/366392/spread-pussy-ponyxl?modelVersionId=409441",
+"https://civitai.com/models/368363/melkor-mancin-romulo-mancin-style-sdxl-pony?modelVersionId=411622",
+"https://civitai.com/models/372465/pony-realism?modelVersionId=534642",
+"https://civitai.com/models/376031/hassaku-xl-hentai?modelVersionId=559994",
+"https://civitai.com/models/377690/sweetcreamcake-or-25-anime-or-styleponyxl?modelVersionId=421754",
+"https://civitai.com/models/383658/lora-concept-or-xl-15-or-cat-keyhole-all-colors?modelVersionId=477696",
+"https://civitai.com/models/393044/mysticalpp-plantpenetrator-style?modelVersionId=438417",
+"https://civitai.com/models/396884/chipmunking?modelVersionId=524172",
+"https://civitai.com/models/429250/innocent-witches-siserg-style?modelVersionId=643098",
+"https://civitai.com/models/432198/pierced-nipplesxl?modelVersionId=486002",
+"https://civitai.com/models/450321/good-hands-for-pony?modelVersionId=501402",
+"https://civitai.com/models/478769/realistic-portrait-midjourney-mimic?modelVersionId=532451",
+"https://civitai.com/models/480835/styleponyrealism-pony-amateur?modelVersionId=534756",
+"https://civitai.com/models/516846/pov-getting-rimmed-female-rimming-male?modelVersionId=574337",
+"https://civitai.com/models/517869/penis-thickness-slider-pony?modelVersionId=575452",
+"https://civitai.com/models/540222/sniffing-testicles-sdxl-or-pony?modelVersionId=600603",
+"https://civitai.com/models/542307/penis-on-face?modelVersionId=602959",
+"https://civitai.com/models/56519/negativehand-negative-embedding?modelVersionId=60938",
+"https://civitai.com/models/578641/onesie-fortnite?modelVersionId=645360",
+"https://civitai.com/models/623396/maika-kamimura-action-taimanin-sdxl-lora-pony-diffusion?modelVersionId=696926",
+"https://civitai.com/models/71961/fast-negative-embedding-fastnegativev2?modelVersionId=94057",
+"https://civitai.com/models/72437/baddream-unrealisticdream-negative-embeddings?modelVersionId=77169",
+"https://civitai.com/models/7808/easynegative?modelVersionId=9208",
+"https://civitai.com/models/81575/amazing-embeddings-fcnegative-fcportrait-suite?modelVersionId=97691",
             ]
 
     for herfItem in match:
         str_list.append(herfItem.replace('\"','').replace('href=','https://civitai.com'))
 
-    for x in range(len(str_list)):
-        get_model_info_by_url2(str_list[x])
+    for herfItem in match2:
+        str_list.append(herfItem.replace('\"','').replace('href=',''))
+
+    # Remove duplicates using a set
+    unique_list = list(set(str_list))
+
+    for x in range(len(unique_list)):
+        get_model_info_by_url2(unique_list[x])
         time.sleep(1)
 
     import subprocess
@@ -1248,3 +1324,10 @@ if __name__ == '__main__':
         print("已成功呼叫 lora_folder.pyy")
     except Exception as e:
         print(f"呼叫 lora_folder.py 時發生錯誤：{e}")
+
+    try:
+        # 呼叫 helper.py 檔案
+        subprocess.run(["python", "lora_prompt.pyy"])
+        print("已成功呼叫 lora_prompt.pyy")
+    except Exception as e:
+        print(f"呼叫 lora_prompt.py 時發生錯誤：{e}")

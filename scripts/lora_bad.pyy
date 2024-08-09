@@ -2,7 +2,7 @@ import os
 import re
 from PIL import Image
 
-bad_image_folder = "E:\\stable-diffusion-output\\Bad\\Bad mix char sex"
+bad_image_folder = "E:\\stable-diffusion-output\\Bad\\0719"
 lora_folder = "E:\\Lora\\pony"
 output_lora_folder = "E:\\stable-diffusion-output\\Bad_Lora"
 search_extensions = ".png"
@@ -16,6 +16,7 @@ exclude_lora_list = [
     'Smooth Anime 2 Style SDXL_LoRA_Pony Diffusion V6 XL'
     ]
 remove_lora_list = []
+bad_prompt_list = []
 
 def move(source_path,target_path):
     try:
@@ -40,7 +41,8 @@ for root, dirs, files in os.walk(bad_image_folder):
                         parametersValue = f.info[parametersKey]
                         parametersValue = parametersValue.split("Negative prompt:")[0]
                         parametersValue = parametersValue.replace("\n", "")
-                        #print(f"{parametersValue}")
+                        print(f"{parametersValue}")
+                        bad_prompt_list.append(parametersValue)
                         
                         pattern = r"<lora:[a-zA-Z0-9\_\-\s]*:[0-9][\.]*[0-9]*>"
                         allLoraList = re.findall(pattern, parametersValue)
