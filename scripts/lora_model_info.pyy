@@ -13,7 +13,11 @@ url_dict = {
 
 search_folders = [
     "D:\\Lora",
-    "E:\\Lora"
+    "D:\\Stable-diffusion",
+    "D:\\embeddings",
+    "E:\\Lora",
+    "G:\\git\\stable-diffusion-webui\\embeddings",
+    "G:\\git\\stable-diffusion-webui\\models\\Stable-diffusion"
     ]
 search_extensions = ".safetensors"
 

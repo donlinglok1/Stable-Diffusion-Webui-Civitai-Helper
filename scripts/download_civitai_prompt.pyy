@@ -5,7 +5,15 @@ from selenium.webdriver.common.by import By
 import requests
 import re
 
-driver = webdriver.Firefox()
+from selenium.webdriver.chrome.options import Options
+from selenium import webdriver
+
+# Set up ChromeOptions and connect to the existing browser
+c_options = Options()
+c_options.add_experimental_option("debuggerAddress", "localhost:9222")
+
+# Initialize the WebDriver with the existing Chrome instance
+driver = webdriver.Chrome(options=c_options)
 
 #for item in soup.findAll('div', attrs={'class': 'name'}):
 #    print(item.text)
@@ -50,6 +58,10 @@ urls_to_download = [
 
 modelListHTML_file_path = "G:\git\stable-diffusion-webui\extensions\Stable-Diffusion-Webui-Civitai-Helper\scripts\civitai_image_model.txt"
 modelListHTML = "";
+
+with open("download_civitai.txt", "r") as f:
+    urls_to_download = dict.fromkeys(f.readlines())
+
 for url in urls_to_download:
     html_content = download_html(url)
     soup = BeautifulSoup(html_content, 'html.parser')
@@ -72,7 +84,7 @@ for url in urls_to_download:
 
                 found_show_button = search_content(html_content, 'mantine-Button-inner"><span class="mantine-..... mantine-Button-label">Show</span>')
                 if len(found_show_button) > 0:
-                    showBtn = driver.find_element(By.XPATH,"/html/body/div[1]/div/div/main/div/div[1]/div[2]/div/div/div/div/div[1]/div/button")
+                    showBtn = driver.find_element(By.XPATH,"/html/body/div[1]/div/div/main/div/div[1]/div[2]/div/div/div/div/div[1]/button")
                     showBtn.click()
                     time.sleep(1)
                     filename = clean_filename(result)

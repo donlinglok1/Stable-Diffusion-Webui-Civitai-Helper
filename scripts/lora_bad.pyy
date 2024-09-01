@@ -2,7 +2,7 @@ import os
 import re
 from PIL import Image
 
-bad_image_folder = "E:\\stable-diffusion-output\\Bad\\0719"
+bad_image_folder = "E:\\stable-diffusion-output\\Bad\\0802a"
 lora_folder = "E:\\Lora\\pony"
 output_lora_folder = "E:\\stable-diffusion-output\\Bad_Lora"
 search_extensions = ".png"

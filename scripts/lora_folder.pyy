@@ -1,8 +1,9 @@
 import os
 import json
 
+sd_tags = ['SD 1.4','SD 1.5','SD 1.5 LCM','SD 1.5 Hyper','SD 2.0','SD 2.1', 'SD 3']
 pony_tags = ['Pony']
-xl_tags = ['SDXL 0.9','SDXL 1.0','SDXL 1.0 LCM','SDXL Distilled','SDXL Turbo']
+xl_tags = ['SDXL 1.0','SDXL 1.0 LCM','SDXL Turbo','SDXL Lightning','SDXL Hyper']
 ani_tags = [
     'anime', 
     'video game', 
@@ -179,11 +180,11 @@ def process_file(file,source_folder):
     file_name = os.path.splitext(file)[0].replace(search_extensions, "")
     file_extension = os.path.splitext(file)[1]
     if file_extension == search_extensions:
-        info_path = root+"\\"+file_name+".civitai.info.model"
-        file_stats = os.stat(root+"\\"+file_name+".civitai.info.model")
-        if len(info_path) != 0:
-            info_path = root+"\\"+file_name+".civitai.info"
         try:    
+            info_path = root+"\\"+file_name+".civitai.info.model"
+            file_stats = os.stat(root+"\\"+file_name+".civitai.info.model")
+            if len(info_path) != 0:
+                info_path = root+"\\"+file_name+".civitai.info"
             with open(info_path, "r", encoding="utf-8") as file:
                 file_content = file.read()
 
@@ -210,6 +211,9 @@ def process_file(file,source_folder):
                     elif baseModelValue in xl_tags:
                         lora_cat += "\\xl"
                         #PPRINT(lora_cat)
+                    elif baseModelValue in sd_tags:
+                        lora_cat += "\\sd"
+                        #PPRINT(lora_cat)
                 elif "trainedWords" in data:
                     keywordValue = data["trainedWords"]
                     isPony = False
@@ -219,6 +223,9 @@ def process_file(file,source_folder):
                         isPony = True
                     elif baseModelValue in xl_tags:
                         lora_cat += "\\xl"
+                        #PPRINT(lora_cat)
+                    elif baseModelValue in sd_tags:
+                        lora_cat += "\\sd"
                         #PPRINT(lora_cat)
 
                 isAniOrRealDone = False
